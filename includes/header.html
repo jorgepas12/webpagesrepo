@@ -1,0 +1,26 @@
+<header class="navbar">
+  <div class="container">
+    <a class="brand" href="{{ '/' | relative_url }}">
+      {% if site.logo %}
+        <img src="{{ site.logo | relative_url }}" alt="Logo" onerror="this.style.display='none'">
+      {% endif %}
+      <span>{{ site.title }}</span>
+    </a>
+
+    <nav class="nav">
+      <ul>
+        {% assign here = page.url | relative_url %}
+        {% for item in site.data.menu %}
+          {% assign link = item.url | relative_url %}
+          <li>
+            <a href="{{ item.external | default:false | ternary: item.url, link }}"
+               {% if item.external %} target="_blank" rel="noopener" {% endif %}
+               class="{% if here == link %}active{% endif %}">
+              {{ item.title }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </nav>
+  </div>
+</header>

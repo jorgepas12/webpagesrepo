@@ -4,22 +4,4 @@ description: Plataforma de Laboratorios · Terraform en Azure Essentials
 url: "https://jorgepas12.github.io"
 baseurl: "/webpagesrepo"
 
-theme: minima
-markdown: kramdown
-plugins:
-  - jekyll-seo-tag
-  - jekyll-feed
-
-# Navegación simple (opcional)
-minima:
-  skin: auto
-
-# Build
-exclude:
-  - vendor/
-  - Gemfile
-  - Gemfile.lock
-  - node_modules/
-  - README.md
-  - package.json
-  - package-lock.json
+logo: /assets/img/netec-logo.png
