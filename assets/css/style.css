@@ -1,0 +1,33 @@
+:root{
+  --accent:#1f74ff;
+  --soft:#eef4ff;
+  --ink:#0f172a;
+  --muted:#475569;
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif; color:var(--ink); margin:0; line-height:1.55}
+.header{
+  padding:2rem 1.25rem; background:white; border-bottom:1px solid #e5e7eb;
+}
+.container{max-width:980px;margin:0 auto}
+.brand{display:flex;gap:1rem;align-items:center}
+.brand img{height:56px}
+.brand .title{font-size:1.85rem;font-weight:800;margin:0}
+.hero{
+  background:var(--soft);
+  padding:1.5rem; border-radius:16px; margin:1rem 0 2rem;
+  border:1px solid #e5e7eb;
+}
+h1{margin:0 0 .25rem 0}
+.lead{color:var(--muted); margin:0}
+.section-title{
+  margin:2rem 0 1rem; font-size:1.25rem; font-weight:800;
+}
+.lablist{list-style:none;padding:0;margin:0;display:grid;gap:14px}
+.lab{
+  background:white; border:1px solid #e5e7eb; border-radius:14px; padding:16px;
+}
+.lab a{font-weight:700; color:var(--accent); text-decoration:none}
+.lab small{color:var(--muted)}
+.footer{margin:3rem 0 2rem; color:var(--muted); font-size:.95rem}
+kbd{background:#f1f5f9;border:1px solid #e2e8f0;border-bottom-width:2px;padding:.1rem .35rem;border-radius:6px}

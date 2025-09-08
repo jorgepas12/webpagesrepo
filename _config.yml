@@ -1,0 +1,19 @@
+title: TRFRM-AZ
+description: Plataforma de Laboratorios · Terraform en Azure Essentials
+# Para project site:
+url: "https://jorgepas12.github.io"
+baseurl: "/webpagesrepo"
+
+theme: minima
+markdown: kramdown
+plugins:
+  - jekyll-seo-tag
+  - jekyll-feed
+
+# Navegación simple (opcional)
+minima:
+  skin: auto
+
+# Build
+exclude:
+  - README.md
