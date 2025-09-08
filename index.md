@@ -1,7 +1,10 @@
 ---
-layout: home
-title: TRFRM-AZ · Plataforma de Laboratorios
+layout: default
+title: "TRFRM-AZ"
 ---
+
+# TRFRM-AZ
+_Plataforma de Laboratorios_
 
 ## 🌟 Lista de Laboratorios - Terraform en Azure Essentials
 
