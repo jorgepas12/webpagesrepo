@@ -1,0 +1,65 @@
+---
+layout: default
+---
+<article class="lab">
+  <header class="lab-head">
+    <h1 class="lab-title">{{ page.title }}</h1>
+    <div class="lab-meta">
+      {% if page.duration %}<span class="badge">⏱ {{ page.duration }}</span>{% endif %}
+      {% if page.difficulty %}<span class="badge">🎯 {{ page.difficulty }}</span>{% endif %}
+      {% if page.tags %}
+        {% for t in page.tags %}<span class="tag">{{ t }}</span>{% endfor %}
+      {% endif %}
+      {% if page.last_updated %}<span class="minor">Actualizado: {{ page.last_updated }}</span>{% endif %}
+    </div>
+    {% if page.summary %}<p class="lead">{{ page.summary }}</p>{% endif %}
+  </header>
+
+  {% if page.objective %}
+  <section>
+    <h2>Objetivo</h2>
+    <p>{{ page.objective }}</p>
+  </section>
+  {% endif %}
+
+  {% if page.requirements %}
+  <section>
+    <h2>Requisitos</h2>
+    <ul>
+      {% for r in page.requirements %}<li>{{ r }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if page.materials %}
+  <section>
+    <h2>Materiales / Recursos</h2>
+    <ul>
+      {% for m in page.materials %}<li>{{ m }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section>
+    <h2>Instrucciones</h2>
+    {{ content }}
+  </section>
+
+  {% if page.validation %}
+  <section>
+    <h2>Validación</h2>
+    <ul>
+      {% for v in page.validation %}<li>{{ v }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if page.troubleshooting %}
+  <section>
+    <h2>Solución de Problemas</h2>
+    <ul>
+      {% for t in page.troubleshooting %}<li>{{ t }}</li>{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</article>
