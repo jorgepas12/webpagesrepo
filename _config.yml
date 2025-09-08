@@ -16,4 +16,11 @@ minima:
 
 # Build
 exclude:
+  - vendor/
+  - Gemfile
+  - Gemfile.lock
+  - node_modules/
   - README.md
+  - package.json
+  - package-lock.json
+
