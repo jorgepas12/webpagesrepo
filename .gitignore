@@ -1,7 +1,34 @@
-# .gitignore
+# --- Jekyll build ---
 _site/
-.sass-cache/
 .jekyll-cache/
 .jekyll-metadata
-vendor/
+.sass-cache/
+
+# Bundler / Ruby
+.bundle/
+vendor/bundle/
+vendor/cache/
+vendor/gems/
+vendor/ruby/
+
+# Node (si llegas a usar herramientas front)
 node_modules/
+dist/
+build/
+
+# SO y editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Archivos temporales
+tmp/
+log/
+coverage/
+
+# Otros posibles artefactos
+*.log
+*.tmp

@@ -2,64 +2,29 @@
 layout: default
 ---
 <article class="lab">
-  <header class="lab-head">
-    <h1 class="lab-title">{{ page.title }}</h1>
-    <div class="lab-meta">
-      {% if page.duration %}<span class="badge">⏱ {{ page.duration }}</span>{% endif %}
-      {% if page.difficulty %}<span class="badge">🎯 {{ page.difficulty }}</span>{% endif %}
-      {% if page.tags %}
-        {% for t in page.tags %}<span class="tag">{{ t }}</span>{% endfor %}
-      {% endif %}
-      {% if page.last_updated %}<span class="minor">Actualizado: {{ page.last_updated }}</span>{% endif %}
-    </div>
-    {% if page.summary %}<p class="lead">{{ page.summary }}</p>{% endif %}
-  </header>
 
-  {% if page.objective %}
-  <section>
-    <h2>Objetivo</h2>
-    <p>{{ page.objective }}</p>
-  </section>
-  {% endif %}
+  {% include nav.html %}
 
-  {% if page.requirements %}
-  <section>
-    <h2>Requisitos</h2>
-    <ul>
-      {% for r in page.requirements %}<li>{{ r }}</li>{% endfor %}
-    </ul>
-  </section>
-  {% endif %}
+  {% include lab-title.html %}
 
-  {% if page.materials %}
-  <section>
-    <h2>Materiales / Recursos</h2>
-    <ul>
-      {% for m in page.materials %}<li>{{ m }}</li>{% endfor %}
-    </ul>
-  </section>
-  {% endif %}
+  {% include lab-intro.html %}
 
-  <section>
-    <h2>Instrucciones</h2>
+  {%- comment -%}
+  Capturamos el contenido del markdown del lab y lo pasamos al include
+  como un parámetro llamado "content".
+  {%- endcomment -%}
+  {% capture instrucciones_md %}
     {{ content }}
-  </section>
+  {% endcapture %}
+  {% include lab-section.html title="Instrucciones" content=instrucciones_md %}
 
-  {% if page.validation %}
-  <section>
-    <h2>Validación</h2>
-    <ul>
-      {% for v in page.validation %}<li>{{ v }}</li>{% endfor %}
-    </ul>
-  </section>
-  {% endif %}
+  {% include lab-footer.html %}
 
-  {% if page.troubleshooting %}
-  <section>
-    <h2>Solución de Problemas</h2>
-    <ul>
-      {% for t in page.troubleshooting %}<li>{{ t }}</li>{% endfor %}
-    </ul>
-  </section>
-  {% endif %}
+  <nav class="lab-nav bottom">
+    {% if page.prev %}<a class="btn" href="{{ page.prev | relative_url }}">⬅ Atrás</a>{% endif %}
+    <a class="btn" href="{{ '/' | relative_url }}">Lista General</a>
+    {% if page.next %}<a class="btn" href="{{ page.next | relative_url }}">Siguiente ➡</a>{% endif %}
+  </nav>
 </article>
+
+{% include scripts-copybtn.html %}

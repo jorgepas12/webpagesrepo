@@ -1,7 +1,12 @@
 title: TRFRM-AZ
 description: Plataforma de Laboratorios · Terraform en Azure Essentials
 # Para project site:
-url: "https://jorgepas12.github.io"
-baseurl: "/webpagesrepo"
+# url: "https://jorgepas12.github.io"
+# baseurl: "/webpagesrepo"
 
-logo: /assets/img/netec-logo.png
+# Para local
+url: "http://localhost:4000"
+baseurl: ""
+
+
+logo: /assets/img/neteclogo.png

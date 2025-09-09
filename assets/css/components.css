@@ -1,0 +1,83 @@
+/* ===== Navegación del lab ===== */
+.lab-nav-wrap{
+  background:#fff;border:1px solid var(--c-line);border-radius:8px;
+  padding:.6rem 1rem;margin-bottom:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,.05);
+}
+.lab-nav{display:flex;justify-content:space-between;gap:10px;margin:12px 0}
+.lab-nav.top{justify-content:space-between;margin:0}
+.lab-nav a.btn{
+  background:#cce2f9;border:1px solid #e2e8f0;border-radius:6px;
+  padding:6px 12px;text-decoration:none;color:#1f2937;font-weight:600;
+}
+.lab-nav a.btn:hover{background:#e2e8f0}
+.lab-nav.top{margin-bottom:1rem}
+.lab-nav.bottom{margin-top:2rem}
+
+/* ===== Intro minimal ===== */
+.lab-intro{
+  background:#fff;border:1px solid var(--c-line);
+  padding:1rem 1.1rem;margin:1rem 0 1.4rem;border-radius:var(--radius);
+}
+.lab-intro h2{font-size:1.05rem;margin:.4rem 0 .35rem;color:var(--c-ink)}
+.lab-intro p,.lab-intro ul{margin-top:0;margin-bottom:1rem}
+.lab-duration{
+  display:inline-block;padding:.28rem .6rem;border-radius:999px;
+  background:var(--c-accent-weak);color:var(--c-ink);font-weight:700;border:1px solid var(--c-line);
+}
+
+/* ===== Sección “caja” reutilizable (Instrucciones, etc.) ===== */
+.lab-section{
+  background:#fff;border:1px solid var(--c-line);border-radius:10px;
+  padding:1.25rem 1.5rem;margin:2rem 0;box-shadow:0 2px 6px rgba(0,0,0,.05);
+}
+.lab-section h2{font-size:1.2rem;font-weight:700;color:var(--c-ink);margin:0 0 1rem}
+.lab-section-body{font-size:1rem;line-height:1.6}
+
+/* Listas de pasos simples */
+.lab-section ol{list-style:decimal;margin:1rem 0;padding-left:1.5rem}
+.lab-section ol li{margin-bottom:.75rem;font-size:1rem;line-height:1.5}
+
+/* ===== Bloques de código con botón Copiar ===== */
+.code-wrap{
+  position:relative;border-radius:12px;overflow:hidden;background:#0b1325;margin:1.25rem 0;
+}
+.code-wrap pre{
+  background:transparent !important;color:#e6eaf2;padding:1rem 1.25rem 1.25rem;margin:0;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  font-size:.95rem;line-height:1.5;overflow:auto;
+}
+.copy-btn{
+  position:absolute;top:.5rem;right:.5rem;display:inline-flex;align-items:center;gap:.5rem;
+  padding:.32rem .55rem;border:1px solid rgba(255,255,255,.22);background:transparent;
+  color:#dfe7ff;border-radius:.45rem;cursor:pointer;font-size:.85rem;
+}
+.copy-btn:hover{background:rgba(255,255,255,.06)}
+.copy-btn:active{transform:translateY(1px)}
+.copy-btn svg{width:16px;height:16px}
+.copy-btn.copied{color:#d1f7d6;background:rgba(16,185,129,.16);border-color:rgba(16,185,129,.35)}
+pre.nocopy + .copy-btn{display:none}
+
+/* ===== Bloques de resultado / resumen ===== */
+.task-result{
+  border-left:4px solid #22c55e;background:#f6fff8;padding:1rem;margin:2rem 0;border-radius:6px;
+}
+.task-result h3{margin-top:0;color:#14532d}
+
+.lab-summary{
+  border:1px solid var(--c-line);background:#fff;padding:1.25rem;margin-top:2rem;border-radius:10px;
+}
+.lab-summary h2{margin:0 0 .6rem 0;color:var(--c-ink);font-size:1.25rem;font-weight:800}
+.lab-summary h3{margin-top:1rem;margin-bottom:.35rem;color:var(--c-ink);font-size:1.05rem}
+.lab-summary p{margin:.25rem 0 .75rem}
+.lab-summary ul{margin:.25rem 0 .75rem 1.2rem}
+.lab-cta{margin-top:1rem;display:flex;gap:.5rem}
+.btn-primary{
+  background:var(--c-accent);color:#fff;border:1px solid #1c5fd1;
+  padding:.52rem .85rem;border-radius:.55rem;text-decoration:none;
+}
+.btn-primary:hover{background:#1c5fd1;border-color:#184fb2}
+
+/* ===== Imágenes en contenido ===== */
+.lab img, article.lab img, .section-space img{
+  max-width:100%;height:auto;display:block;margin:.75rem auto;border-radius:6px;border:1px solid var(--c-line);
+}

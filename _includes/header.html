@@ -11,13 +11,26 @@
       <ul>
         {% assign here = page.url | relative_url %}
         {% for item in site.data.menu %}
-          {% assign link = item.url | relative_url %}
+          {% assign raw = item.url | default:'' %}
+          {% if raw == '' %}
+            {% assign href = '' %}
+          {% elsif item.external %}
+            {% assign href = raw %}
+          {% else %}
+            {% assign href = raw | relative_url %}
+          {% endif %}
+
+          {% assign active = '' %}
+          {% if href != '' and item.external != true and here == href %}
+            {% assign active = 'active' %}
+          {% endif %}
+
           <li>
-            <a href="{{ item.external | default:false | ternary: item.url, link }}"
-               {% if item.external %} target="_blank" rel="noopener" {% endif %}
-               class="{% if here == link %}active{% endif %}">
-              {{ item.title }}
-            </a>
+            {% if href != '' %}
+              <a href="{{ href }}" {% if item.external %}target="_blank" rel="noopener"{% endif %} class="{{ active }}">{{ item.title }}</a>
+            {% else %}
+              <span class="disabled">{{ item.title }}</span>
+            {% endif %}
           </li>
         {% endfor %}
       </ul>

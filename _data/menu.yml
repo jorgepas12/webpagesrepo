@@ -1,11 +1,11 @@
-- title: Inicio
-  url: /
-- title: Laboratorios
-  url: /#labs
-- title: Acerca de
-  url: /about/
-- title: Contacto
-  url: /contacto/
+# - title: Menú
+#  url: /
+# - title: Laboratorios
+#  url: /#labs
+# - title: Acerca de
+#  url: /about/
+# - title: Contacto
+#  url: /contacto/
 # Ejemplo de link externo:
 # - title: Netec
 #   url: https://www.netec.com
