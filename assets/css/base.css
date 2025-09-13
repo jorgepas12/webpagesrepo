@@ -6,6 +6,8 @@
   --c-accent:#1f6feb;       /* acento sobrio */
   --c-accent-weak:#e7efff;  /* acento sutil */
   --c-bg-soft:#f9fbff;      /* fondo suave de cajas */
+  --brand-blue-rgb: 59, 165, 224;   /* #3ba5e0 */
+  --brand-indigo-rgb: 31, 111, 235; /* #1f6feb */
   --radius:10px;
 }
 
@@ -37,7 +39,7 @@ body{
 }
 .lab-head{border-bottom:1px solid var(--c-line);padding-bottom:12px;margin-bottom:16px}
 .lab-title{
-  font-size:clamp(1.4rem,3.2vw,2rem);
+  font-size:clamp(1.4rem,3.2vw,1.7rem);
   font-weight:800;
   line-height:1.2;
   margin:.2rem 0 .25rem;
@@ -60,3 +62,15 @@ body{
 h2{margin-top:2rem;color:var(--c-ink)}
 h3{margin-top:1.25rem;color:var(--c-ink)}
 strong{color:#000}
+
+
+/* -------- Curso: tipografía principal -------- */
+.course { padding: 10px 0; }
+.course-title{
+  font-size: clamp(1.5rem, 2.0vw + .4rem, 1.7rem);
+  line-height: 1.15;
+  margin: 0 0 .35rem;
+}
+.course-subtitle { color: var(--c-muted); margin: 0 0 .35rem; }
+.course-intro { color: var(--c-ink); margin: .25rem 0 1.25rem; }
+.course .emoji { margin-right: .35rem; }

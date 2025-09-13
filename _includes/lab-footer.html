@@ -13,14 +13,20 @@ Parámetros (usa page.* o include.*):
   {% assign _final = include.final_result | default: page.final_result %}
   {% if _final %}
     <h3>Resultado Final</h3>
-    <p>{{ _final }}</p>
+    <p>{{ _final | markdownify }}</p>
   {% endif %}
 
   {% assign _notes = include.notes | default: page.notes %}
   {% if _notes and _notes.size > 0 %}
     <h3>Notas y/o Consideraciones</h3>
     <ul>
-      {% for n in _notes %}<li>{{ n }}</li>{% endfor %}
+      {% for n in _notes %}
+        {% assign item = n | markdownify | strip %}
+        {% if item contains '<p>' %}
+          {% assign item = item | remove: '<p>' | remove: '</p>' %}
+        {% endif %}
+        <li>{{ item }}</li>
+      {% endfor %}
     </ul>
   {% endif %}
 

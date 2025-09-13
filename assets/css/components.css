@@ -13,11 +13,15 @@
 .lab-nav.top{margin-bottom:1rem}
 .lab-nav.bottom{margin-top:2rem}
 
-/* ===== Intro minimal ===== */
-.lab-intro{
-  background:#fff;border:1px solid var(--c-line);
-  padding:1rem 1.1rem;margin:1rem 0 1.4rem;border-radius:var(--radius);
+.lab-nav-wrap-bottom{
+  background:#fff;border:1px solid var(--c-line);border-radius:8px;
+  padding:0rem 1rem;margin-top:1.5rem;box-shadow:0 1px 3px rgba(0,0,0,.05);
 }
+/* ===== Intro minimal ===== */
+.lab-intro{position: relative;background:#fff;border:1px solid var(--c-line);border-radius: var(--radius);padding:1rem 1.1rem;margin:1rem 0 1.4rem;overflow:hidden;}
+
+/* Velo MUY sutil con colores del logo */
+.lab-intro::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(800px 220px at 10% -10%,rgba(var(--brand-blue-rgb), .12), transparent 60%),radial-gradient(800px 220px at 95% 120%,rgba(var(--brand-indigo-rgb), .18), transparent 60%);}
 .lab-intro h2{font-size:1.05rem;margin:.4rem 0 .35rem;color:var(--c-ink)}
 .lab-intro p,.lab-intro ul{margin-top:0;margin-bottom:1rem}
 .lab-duration{
@@ -59,12 +63,32 @@ pre.nocopy + .copy-btn{display:none}
 
 /* ===== Bloques de resultado / resumen ===== */
 .task-result{
-  border-left:4px solid #22c55e;background:#f6fff8;padding:1rem;margin:2rem 0;border-radius:6px;
+  border-left:4px solid #22c55e;background:#f6fff8;padding:.3rem .6rem;margin:2rem 0;border-radius:6px;
 }
 .task-result h3{margin-top:0;color:#14532d}
 
+/* ---- Resumen final con fondo sutil de marca ---- */
 .lab-summary{
-  border:1px solid var(--c-line);background:#fff;padding:1.25rem;margin-top:2rem;border-radius:10px;
+  position: relative;               /* para el ::before */
+  background:#fff;
+  border:1px solid var(--c-line);
+  border-radius:10px;
+  padding:1.25rem;
+  margin-top:2rem;
+  overflow:hidden;                  /* respeta el borde redondeado */
+}
+
+/* Velo MUY suave usando los colores del logo */
+.lab-summary::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(900px 260px at 10% -10%,
+      rgba(var(--brand-blue-rgb), .09), transparent 60%),
+    radial-gradient(900px 260px at 95% 120%,
+      rgba(var(--brand-indigo-rgb), .18), transparent 60%);
 }
 .lab-summary h2{margin:0 0 .6rem 0;color:var(--c-ink);font-size:1.25rem;font-weight:800}
 .lab-summary h3{margin-top:1rem;margin-bottom:.35rem;color:var(--c-ink);font-size:1.05rem}
@@ -80,4 +104,287 @@ pre.nocopy + .copy-btn{display:none}
 /* ===== Imágenes en contenido ===== */
 .lab img, article.lab img, .section-space img{
   max-width:100%;height:auto;display:block;margin:.75rem auto;border-radius:6px;border:1px solid var(--c-line);
+}
+
+
+/* -------- Hero del curso INDEX-------- */
+.course-hero{
+  position: relative;              /* necesario para el ::before */
+  background: #fff;                /* mantiene fondo blanco base */
+  border: 1px solid var(--c-line);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  overflow: hidden;                /* para que el velo respete el borde redondeado */
+}
+
+/* Velo de color MUY sutil usando colores del logo */
+.course-hero::before{
+  content:"";
+  position:absolute;
+  inset:0;                         /* cubre toda la tarjeta */
+  pointer-events:none;
+  background:
+    radial-gradient(900px 260px at 12% -10%,
+      rgba(var(--brand-blue-rgb), .10), transparent 60%),
+    radial-gradient(900px 260px at 92% 120%,
+      rgba(var(--brand-indigo-rgb), .08), transparent 60%);
+}
+
+
+/* -------- Grid de laboratorios -------- */
+/* .lab-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+} */
+
+/* @media (min-width: 720px) {
+  .lab-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1040px) {
+  .lab-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+} */
+
+/* Sustituye .lab-grid por: */
+.lab-grid { display: block; }
+.lab-grid .lab-card { margin-bottom: 10px; }
+
+
+
+/* -------- Tarjeta de laboratorio -------- */
+.lab-card {
+  display: block;
+  background: #fff;
+  border: 1px solid var(--c-line);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  text-decoration: none;
+  color: var(--c-ink);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+/* Efecto hover con azul Netec */
+.lab-card:hover {
+  background: #f0f7ff; /* azul muy claro */
+  border-color: #3ba5e0; /* azul tomado del logo */
+  transform: translateY(-2px); /* pequeño lift */
+  box-shadow: 0 4px 10px rgba(59, 165, 224, 0.15); /* glow azul */
+}
+/* Título dentro de la tarjeta */
+.lab-card h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--c-ink);
+}
+/* Duración */
+.lab-duration {
+  font-size: .85rem;
+  font-weight: 600;
+  color: #3ba5e0; /* azul corporativo */
+}
+.lab-card-head {
+  display:flex; align-items:center; justify-content:space-between; gap:.5rem;
+}
+.lab-card-title {
+  font-size: 1.02rem; line-height: 1.35; margin: 0;
+  font-weight: 700; color: var(--c-ink);
+}
+.lab-chip {
+  background: var(--c-accent-weak);
+  border: 1px solid var(--c-line);
+  color: var(--c-ink);
+  font-weight: 700;
+  border-radius: 999px;
+  padding: .18rem .5rem;
+  font-size: .82rem;
+  white-space: nowrap;
+}
+.lab-card-desc {
+  margin: .45rem 0 0;
+  color: var(--c-muted);
+  font-size: .95rem;
+}
+
+/* -------- Nota final del curso -------- */
+.course-footnote {
+  margin-top: 1.25rem;
+  padding: .75rem 1rem;
+  background: #fff;
+  border: 1px solid var(--c-line);
+  border-radius: 10px;
+  color: var(--c-ink);
+}
+
+/* ------------------------------
+   Tarjeta de agradecimiento
+   ------------------------------ */
+.card.thank-card{
+  display:flex;
+  gap:1rem;
+  align-items:center;
+  border-left:6px solid transparent;
+  border-image: linear-gradient(180deg,#7c3aed,#22d3ee) 1; /* morado->cyan */
+  background: linear-gradient(0deg,#ffffff, #ffffff),
+              radial-gradient(1200px 400px at 0% 0%, #f5f3ff 0, transparent 60%);
+  padding: 0rem 1rem 0.5rem;
+  border-radius:12px;
+  margin:1rem 0;
+  box-shadow:0 1px 2px rgba(0,0,0,.05);
+}
+
+.thank-emoji{
+  font-size:1.8rem;
+  line-height:1;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  width:2.2rem;
+  height:2.2rem;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 4px 10px rgba(124,58,237,.12);
+}
+
+.thank-title{
+  margin: 0 0 .3rem;
+  font-weight:600;
+  letter-spacing:.2px;
+}
+
+.thank-text{
+  margin:0;
+  color:#334155;
+}
+
+/* ------------------------------
+   Tarjeta de contacto
+   ------------------------------ */
+.card.contact-card {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  border-left: 6px solid transparent;
+  border-image: linear-gradient(180deg,#0ea5e9,#6366f1) 1; /* azul->indigo */
+  background: linear-gradient(0deg,#ffffff, #ffffff),
+              radial-gradient(1200px 400px at 0% 0%, #eff6ff 0, transparent 60%);
+  padding: 0rem 1rem 0.5rem;
+  border-radius: 12px;
+  margin: 1rem 0;
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+
+.contact-emoji {
+  font-size: 1.8rem;
+  line-height: 1;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(14,165,233,.15);
+}
+
+.contact-title {
+  margin: 0 0 .3rem;
+  font-weight: 600;
+  letter-spacing: .2px;
+}
+
+.contact-text p {
+  margin: 0;
+  color: #334155;
+}
+
+.course-subtitle{
+  display:inline-flex;
+  align-items:center;
+  gap:.45rem;
+  font-weight: 800;
+  font-size: 1rem;
+  padding: .25rem .6rem;
+  border-radius: 999px;
+  background:#eef2ff;        /* fondo indigo suave */
+  color:#3730a3;             /* texto indigo */
+  border:1px solid #e0e7ff;  /* borde sutil */
+  margin:.3rem 0 .75rem;
+}
+
+/* ===== Notas dentro de prácticas ===== */
+/* Nota reutilizable */
+.lab-note{
+  border-left:4px solid var(--c-accent);
+  background:#f9fbff;
+  padding:.10rem 1rem;
+  margin:1.2rem 0;
+  border-radius:6px;
+  font-size:.95rem;
+  line-height:1.55;
+}
+
+.lab-note strong{ color:var(--c-ink); }
+
+/* Variantes (opcional) */
+/* .lab-note.info{  } */
+.lab-note.important{ border-left-color:#e11d48; background:#fff5f5; }
+.lab-note.warning{ border-left-color:#f59e0b; background:#fffbeb; }
+.lab-note.success{ border-left-color:#22c55e; background:#f0fdf4; }
+
+/* Compacta (menos margen/padding) */
+.lab-note.compact{ padding:.55rem .8rem; margin:.8rem 0; }
+
+/* Contenedor del bloque de código + botón */
+.code-wrap {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0b1325;
+  margin: 1.25rem 0;
+}
+
+/* PRE: reserva espacio para que el botón no se monte encima */
+.code-wrap pre {
+  background: transparent !important;
+  color: #e6eaf2;
+  padding: 1rem 3.75rem 1.25rem 1.25rem; /* <-- padding-right extra */
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: .95rem;
+  line-height: 1.5;
+  overflow: auto;
+  white-space: pre;
+}
+
+/* Botón copiar */
+.copy-btn {
+  position: absolute;
+  top: .5rem;
+  right: .5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .35rem .6rem;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.06);
+  color: #dbe2ff;
+  border-radius: .5rem;
+  cursor: pointer;
+  backdrop-filter: blur(3px);
+  font-size: .85rem;
+  z-index: 2; /* asegura que quede encima */
+}
+
+.copy-btn:hover { background: rgba(255,255,255,.12); }
+.copy-btn:active { transform: translateY(1px); }
+
+/* Responsive: botón solo icono en móviles */
+@media (max-width: 560px) {
+  .copy-btn span { display: none; }
+  .code-wrap pre { padding-right: 2.25rem; }
 }

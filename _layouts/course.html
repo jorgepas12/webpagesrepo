@@ -1,0 +1,52 @@
+---
+layout: default
+---
+<article class="course">
+
+  {% include course-hero.html 
+     title=page.title 
+     subtitle=page.subtitle 
+     emoji=page.emoji 
+     intro=page.intro %}
+
+  {% assign course = site.data.courses[page.course_id] %}
+  {% if course %}
+    <div class="lab-grid">
+      {% for lab in course.labs %}
+        {% include lab-card.html
+           index=forloop.index 
+           title=lab.title 
+           url=lab.url 
+           duration=lab.duration 
+           desc=lab.desc %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="minor">No se encontró el curso <code>{{ page.course_id }}</code> en <code>_data/courses.yml</code>.</p>
+  {% endif %}
+
+
+  {% if page.footer_note %}
+    <div class="card thank-card">
+      <div class="thank-emoji">✨</div>
+      <div>
+        <h2 class="contact-title">{{ page.footer_title }}</h2>
+        {{ page.footer_note | markdownify }}
+      </div>
+    </div>
+  {% endif %}
+
+
+  {% if page.contact_title and page.contact_note %}
+    <div class="card contact-card">
+      <div class="contact-emoji">📬</div>
+      <div>
+        <h2 class="contact-title">{{ page.contact_title }}</h2>
+        <div class="contact-text">
+          {{ page.contact_note | markdownify }}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+</article>

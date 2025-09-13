@@ -4,9 +4,12 @@
   <meta charset="utf-8">
   <title>{{ page.title | default: site.title }}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="{{ '../assets/css/base.css' | relative_url }}">
+  <!-- <link rel="stylesheet" href="{{ '../assets/css/base.css' | relative_url }}">
   <link rel="stylesheet" href="{{ '../assets/css/components.css' | relative_url }}">
-  <link rel="stylesheet" href="{{ '../assets/css/syntax.css' | relative_url }}">
+  <link rel="stylesheet" href="{{ '../assets/css/syntax.css' | relative_url }}"> -->
+  <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/base.css">
+  <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/components.css">
+  <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/syntax.css">
 
 </head>
 <body>
@@ -14,5 +17,6 @@
   <main class="container">
     {{ content }}
   </main>
+  {% include scripts-copybtn.html %}
 </body>
 </html>

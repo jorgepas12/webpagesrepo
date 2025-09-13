@@ -1,0 +1,20 @@
+# _data/courses.yml
+azure_essentials:
+  title: "Terraform en Azure Essentials"
+  intro: "Cada laboratorio está diseñado para una experiencia práctica. Haz clic para comenzar."
+  labs:
+    - id: lab1
+      title: "Instalación y Verificación de Terraform en Windows para Azure"
+      url:  "/capitulo2/lab1/"
+      duration: "25 min"
+      desc: "Instalación de Terraform y preparación del entorno con Azure CLI."
+    - id: lab2
+      title: "Autenticación del Proveedor Azure en Terraform"
+      url:  "/capitulo3/lab2/"
+      duration: "30 min"
+      desc: "Login con Azure CLI y configuración del provider en Terraform."
+    - id: lab3
+      title: "Definición de Recursos en Terraform"
+      url:  "/capitulo3/lab3/"
+      duration: "15 min"
+      desc: "Crea recursos básicos en Azure: grupo, red virtual, instancia."

@@ -1,0 +1,7 @@
+<a class="lab-card" href="{{ include.url | relative_url }}">
+  <div class="lab-card-head">
+    <h3 class="lab-card-title">{{ include.index }}. {{ include.title }}</h3>
+    {% if include.duration %}<span class="lab-chip">{{ include.duration }}</span>{% endif %}
+  </div>
+  {% if include.desc %}<p class="lab-card-desc">{{ include.desc }}</p>{% endif %}
+</a>

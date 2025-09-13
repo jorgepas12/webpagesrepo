@@ -2,7 +2,7 @@
   {% if page.objective %}
     <section>
       <h2>Objetivo</h2>
-      <p>{{ page.objective | join: " " }}</p>
+      <p>{{ page.objective | join: " " | markdownify }}</p>
     </section>
   {% endif %}
 
@@ -24,7 +24,7 @@
   {% if page.introduction %}
     <section>
       <h2>Introducción</h2>
-      <p>{{ page.introduction | join: " " }}</p>
+      <p>{{ page.introduction | join: " " | markdownify }}</p>
     </section>
   {% endif %}
 </div>

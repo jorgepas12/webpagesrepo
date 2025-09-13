@@ -2,6 +2,7 @@
 layout: lab
 title: "Práctica 1: Instalación y Verificación de Terraform en Windows para Azure"
 permalink: /capitulo2/lab1/
+images_base: /labs/capitulo2/img
 duration: "25 minutos"
 objective:
   - Instalar Terraform en Windows y validar su instalación correctamente. Además, preparar el entorno para trabajar con Azure usando Azure CLI.
@@ -11,7 +12,7 @@ prerequisites:
   - Acceso a Internet.
   - Cuenta activa en Azure.
 introduction:
-  - AQUI LA INTRODUCCIÓN
+  - En esta práctica configurarás **Terraform** en **Windows** descargarás el binario oficial, lo descomprimirás en `C:\Terraform`, agregarás esa ruta al **PATH** del sistema para poder usarlo desde cualquier terminal, ajustarás **Git Bash** como terminal por defecto en **Visual Studio Code** y verificarás la instalación ejecutando `terraform -version`.
 lab_number: 1
 final_result: >
   Terraform quedó instalado y operativo en Windows, accesible desde cualquier
@@ -24,7 +25,7 @@ references:
     url: https://developer.hashicorp.com/terraform
   - text: Documentación de Azure CLI
     url: https://learn.microsoft.com/es-es/cli/azure/
-prev: /          # (opcional: si no hay página anterior)
+prev: /          
 next: /capitulo3/lab2/
 ---
 
@@ -41,7 +42,11 @@ En esta sección se descargará Terraform desde la fuente oficial, se instalará
 
 - **Paso 2.** Selecciona el sistema operativo **Windows** y descarga la versión de 64-bit (**AMD64**) en formato `.zip`.
 
-  ![terraimg1](../images/lab1/img1.png)
+  ![terraimg1]({{ page.path
+  | replace: page.name, ''   
+  | append: 'img/img1.png'   
+  | prepend: '/'            
+  | relative_url }})
 
 ### Tarea 1.2. Extraer el archivo ZIP
 
@@ -55,7 +60,7 @@ En esta sección se descargará Terraform desde la fuente oficial, se instalará
   C:\Terraform
   ```
 
-  ![terraimg2](../images/lab1/img2.png)
+  ![terraimg2]({{ page.images_base | relative_url }}/img2.png)
 
 ### Tarea 1.3. Agregar Terraform al PATH del sistema
 
@@ -63,11 +68,11 @@ En esta sección se descargará Terraform desde la fuente oficial, se instalará
 
 - **Paso 6.** Ve a la pestaña **"Opciones avanzadas"** o **"Avanzadas"** y haz clic en **"Variables de entorno..."**.
 
-  ![terraimg3](../images/lab1/img3.png)
+  ![terraimg3]({{ page.images_base | relative_url }}/img3.png)
 
 - **Paso 7.** En la sección **"Variables del sistema"**, busca la variable llamada `Path` y haz clic en **Editar**.
 
-  ![terraimg4](../images/lab1/img4.png)
+  ![terraimg4]({{ page.images_base | relative_url }}/img4.png)
 
 - **Paso 8.** En la ventana que aparece, haz clic en **"Nuevo"** y agrega la ruta donde descomprimiste Terraform, por ejemplo:
 
@@ -75,7 +80,7 @@ En esta sección se descargará Terraform desde la fuente oficial, se instalará
   C:\Terraform
   ```
   
-  ![terraimg5](../images/lab1/img5.png)
+  ![terraimg5]({{ page.images_base | relative_url }}/img5.png)
 
 - **Paso 9.** Haz clic en **OK** o **Aceptar** en todas las ventanas para guardar los cambios.
 
@@ -97,15 +102,15 @@ Se comprobará que Terraform esté disponible en la terminal de Git Bash integra
 
 - **Paso 2.** Abrir la terminal integrada de Visual Studio Code **(menú `Terminal > New Terminal`)** o la combinacion de teclas **`CTRL + ñ`**, tambien puedes dar clic en el botón como lo muestra la imagen.
 
-  ![terraimg6](../images/lab1/img6.png)
+  ![terraimg6]({{ page.images_base | relative_url }}/img6.png)
 
 - **Paso 3.** En la terminal abierta da clic en la pestaña y luego en **Select Default Profile**
 
-  ![terraimg7](../images/lab1/img7.png)
+  ![terraimg7]({{ page.images_base | relative_url }}/img7.png)
 
 - **Paso 4.** En la ventana superior selecciona la opción **Git Bash**.
 
-  ![terraimg8](../images/lab1/img8.png)
+  ![terraimg8]({{ page.images_base | relative_url }}/img8.png)
 
 - **Paso 5.** Ahora cierra el software de **Visual Studio Code** y vuelvelo abrir para que tomen efectos los cambios y **repite el paso 2**.
 
@@ -117,7 +122,7 @@ Se comprobará que Terraform esté disponible en la terminal de Git Bash integra
   terraform -version
   ```
     
-  ![terraimg9](../images/lab1/img9.png)
+  ![terraimg9]({{ page.images_base | relative_url }}/img9.png)
 
 <div class="task-result">
   <h3>Tarea finalizada</h3>

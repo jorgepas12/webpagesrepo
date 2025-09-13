@@ -6,6 +6,7 @@ _site/
 
 # Bundler / Ruby
 .bundle/
+vendor/
 vendor/bundle/
 vendor/cache/
 vendor/gems/
@@ -32,3 +33,12 @@ coverage/
 # Otros posibles artefactos
 *.log
 *.tmp
+
+# OneDrive/Windows varios
+Desktop.ini
+ehthumbs.db
+*.lnk
+
+# Archivos de entorno locales
+.env
+.env.*

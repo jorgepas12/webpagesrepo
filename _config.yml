@@ -1,12 +1,29 @@
 title: TRFRM-AZ
 description: Plataforma de Laboratorios · Terraform en Azure Essentials
 # Para project site:
-# url: "https://jorgepas12.github.io"
-# baseurl: "/webpagesrepo"
+url: "https://jorgepas12.github.io"
+baseurl: "/webpagesrepo"   # CLAVE para que no se rompan rutas
 
-# Para local
-url: "http://localhost:4000"
-baseurl: ""
+# Para local Recuerda ajustar rutas en los archivos
+# url: "http://localhost:4000"
+# baseurl: ""
 
+# Si usas un tema remoto (opcional):
+# remote_theme: owner/tema
+
+plugins:
+  - jekyll-include-cache
+  - jekyll-remote-theme
+  - jekyll-feed
+  - jekyll-seo-tag
+
+exclude:
+  - .bundle
+  - vendor
+  - node_modules
+  - .github
+  - Gemfile
+  - Gemfile.lock
+  - README.md
 
 logo: /assets/img/neteclogo.png
