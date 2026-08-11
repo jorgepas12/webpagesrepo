@@ -20,8 +20,8 @@
 /* ===== Intro minimal ===== */
 .lab-intro{position: relative;background:#fff;border:1px solid var(--c-line);border-radius: var(--radius);padding:1rem 1.1rem;margin:1rem 0 1.4rem;overflow:hidden;}
 
-/* Velo MUY sutil con colores del logo */
-.lab-intro::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(800px 220px at 10% -10%,rgba(var(--brand-blue-rgb), .12), transparent 60%),radial-gradient(800px 220px at 95% 120%,rgba(var(--brand-indigo-rgb), .18), transparent 60%);}
+/* Velo MUY sutil con colores del logo INTRODUCCION PRACTICAS */
+.lab-intro::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(800px 220px at 10% -10%,rgba(var(--brand-blue-rgb), .30), transparent 60%),radial-gradient(800px 220px at 90% 110%,rgba(var(--brand-indigo-rgb), .30), transparent 60%);}
 .lab-intro h2{font-size:1.05rem;margin:.4rem 0 .35rem;color:var(--c-ink)}
 .lab-intro p,.lab-intro ul{margin-top:0;margin-bottom:1rem}
 .lab-duration{
@@ -78,7 +78,7 @@ pre.nocopy + .copy-btn{display:none}
   overflow:hidden;                  /* respeta el borde redondeado */
 }
 
-/* Velo MUY suave usando los colores del logo */
+/* Velo MUY suave usando los colores del logo RESULTADO FINAL*/
 .lab-summary::before{
   content:"";
   position:absolute;
@@ -86,9 +86,9 @@ pre.nocopy + .copy-btn{display:none}
   pointer-events:none;
   background:
     radial-gradient(900px 260px at 10% -10%,
-      rgba(var(--brand-blue-rgb), .09), transparent 60%),
+      rgba(var(--brand-blue-rgb), .20), transparent 60%),
     radial-gradient(900px 260px at 95% 120%,
-      rgba(var(--brand-indigo-rgb), .18), transparent 60%);
+      rgba(var(--brand-indigo-rgb), .20), transparent 60%);
 }
 .lab-summary h2{margin:0 0 .6rem 0;color:var(--c-ink);font-size:1.25rem;font-weight:800}
 .lab-summary h3{margin-top:1rem;margin-bottom:.35rem;color:var(--c-ink);font-size:1.05rem}
@@ -119,7 +119,7 @@ pre.nocopy + .copy-btn{display:none}
   overflow: hidden;                /* para que el velo respete el borde redondeado */
 }
 
-/* Velo de color MUY sutil usando colores del logo */
+/* Velo de color MUY sutil usando colores del logo PLATAFORMA DE LABORATORIOS*/
 .course-hero::before{
   content:"";
   position:absolute;
@@ -127,9 +127,9 @@ pre.nocopy + .copy-btn{display:none}
   pointer-events:none;
   background:
     radial-gradient(900px 260px at 12% -10%,
-      rgba(var(--brand-blue-rgb), .10), transparent 60%),
+      rgba(var(--brand-blue-rgb), .28), transparent 60%),
     radial-gradient(900px 260px at 92% 120%,
-      rgba(var(--brand-indigo-rgb), .08), transparent 60%);
+      rgba(var(--brand-indigo-rgb), .18), transparent 60%);
 }
 
 
@@ -388,3 +388,15 @@ pre.nocopy + .copy-btn{display:none}
   .copy-btn span { display: none; }
   .code-wrap pre { padding-right: 2.25rem; }
 }
+
+/* ESTILOS PARA TABLAS */
+.lab-table{
+  width:100%; border-collapse:collapse; margin: .75rem 0;
+  font-size:.95rem;
+}
+.lab-table th,.lab-table td{
+  border:1px solid var(--c-line, #dfe3e8);
+  padding:.5rem .75rem; text-align:left;
+}
+.lab-table th{ background:#f5f7fa; font-weight:700; }
+.lab-table tr:nth-child(even){ background:#fafafa; }

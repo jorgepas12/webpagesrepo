@@ -13,5 +13,5 @@ footer_note: >
   No olvides revisar todos los laboratorios y comenzar tu viaje de aprendizaje hoy mismo.
 contact_title: "Contacto y Más Información"
 contact_note: >
-  Si tienes alguna pregunta o necesitas más detalles, no dudes en [contactarnos](mailto:soporte@netec.com). También puedes encontrar más recursos en nuestra página de [Netec](https://netec.com).
+  Si tienes alguna pregunta o necesitas más detalles, no dudes en [contactarnos](mailto:soporte@netec.com). También puedes encontrar más recursos en nuestra página de <a href="https://netec.com" target="_blank" rel="noopener noreferrer">Netec</a>.
 ---

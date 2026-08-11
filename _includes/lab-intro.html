@@ -7,10 +7,14 @@
   {% endif %}
 
   {% if page.prerequisites %}
-    <section>
-      <h2>Requisitos previos</h2>
-      <ul>{% for r in page.prerequisites %}<li>{{ r }}</li>{% endfor %}</ul>
-    </section>
+  <section>
+    <h2>Requisitos previos</h2>
+    <ul>
+      {% for r in page.prerequisites %}
+        <li>{{ r | markdownify | replace: '<p>', '' | replace: '</p>', '' | strip }}</li>
+      {% endfor %}
+    </ul>
+  </section>
   {% endif %}
 
   {% assign _dur = page.duracion_estimada | default: page.duration %}

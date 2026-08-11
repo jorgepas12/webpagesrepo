@@ -13,7 +13,8 @@ prerequisites:
   - Azure CLI instalado.
   - Tener una suscripción activa en Azure.
 introduction:
-  - En esta práctica configurarás el entorno para trabajar con **Terraform en Azure**. Iniciarás sesión en **Azure CLI**, definirás el archivo **`main.tf`** con el proveedor **`azurerm`** y habilitarás la extensión de **Terraform** en **Visual Studio Code**. Con ello tendrás todo listo para comenzar a desplegar recursos en Azure mediante **Infraestructura como Código (IaC)**.  
+  - En esta práctica configurarás el entorno para trabajar con **Terraform en Azure**. Iniciarás sesión en **Azure CLI**, definirás el archivo **`main.tf`** con el proveedor **`azurerm`** y habilitarás la extensión de **Terraform** en **Visual Studio Code**. Con ello tendrás todo listo para comenzar a desplegar recursos en Azure mediante **Infraestructura como Código (IaC)**.
+slug: lab2
 lab_number: 2
 final_result: |
   - Azure CLI autenticado correctamente en tu cuenta de Azure.
@@ -53,6 +54,7 @@ Se usará el comando `az login` desde Git Bash para iniciar sesión en la cuenta
   > **IMPORTANTE:** Puede aparecer un error al autenticarse. Verifica en la terminal que el login fue exitoso (segunda imagen).
   {: .lab-note .important .compact}
 
+
   ![terraimg10]({{ page.images_base | relative_url }}/img1.png)
   ![terraimg11]({{ page.images_base | relative_url }}/img2.png)
 
@@ -84,10 +86,9 @@ Se usará el comando `az login` desde Git Bash para iniciar sesión en la cuenta
   
   ![terraimg14]({{ page.images_base | relative_url }}/img5.png)
 
-<div class="task-result">
-  <h3>Tarea finalizada</h3>
-  <p><strong>Resultado esperado:</strong> Azure CLI autenticado correctamente y configurado con la suscripción correcta.</p>
-</div>
+{% assign results = site.data.task-results[page.slug].results %}
+{% capture r1 %}{{ results[0] }}{% endcapture %}
+{% include task-result.html title="Tarea finalizada" content=r1 %}
 
 ---
 
@@ -97,7 +98,7 @@ En esta tarea se creará un directorio de proyecto y se escribirá un archivo `m
 
 #### Tarea 2.1. Crear estructura de proyecto
 
-- **Paso 1.** En la terminal de Git Bash, usa la carpeta previamente creada para el proyecto llamada **TERRALABS**:
+- **Paso 7.** En la terminal de Git Bash, usa la carpeta previamente creada para el proyecto llamada **TERRALABS**:
 
   > **NOTA:** Si la carpeta **TERRALABS** no existe creala en el Escritorio.
   {: .lab-note .info .compact}
@@ -111,17 +112,17 @@ En esta tarea se creará un directorio de proyecto y se escribirá un archivo `m
 
   ![terraimg15]({{ page.images_base | relative_url }}/img6.png)
 
-- **Paso 2.** Abre esta carpeta desde VS Code: **`File > Open Folder... > Selecciona Desktop y luego TERRALABS`** y confirma la ventana emergente.
+- **Paso 8.** Abre esta carpeta desde VS Code: **`File > Open Folder... > Selecciona Desktop y luego TERRALABS`** y confirma la ventana emergente.
 
   ![terraimg16]({{ page.images_base | relative_url }}/img7.png)
 
 #### Tarea 2.2. Crear y editar `main.tf`
 
-- **Paso 3.** En el explorador de VS Code, crea un nuevo archivo llamado `main.tf`.
+- **Paso 9.** En el explorador de VS Code, crea un nuevo archivo llamado `main.tf`.
 
   ![terraimg17]({{ page.images_base | relative_url }}/img8.png)   
 
-- **Paso 4.** Copia y pega el siguiente contenido:
+- **Paso 10.** Copia y pega el siguiente contenido:
 
   ```hcl
   terraform {
@@ -140,10 +141,9 @@ En esta tarea se creará un directorio de proyecto y se escribirá un archivo `m
   }
   ```
 
-<div class="task-result">
-  <h3>Tarea finalizada</h3>
-  <p><strong>Resultado esperado:</strong> Se habrá creado el archivo base de configuración de Terraform para trabajar con Azure.</p>
-</div>
+{% assign results = site.data.task-results[page.slug].results %}
+{% capture r1 %}{{ results[1] }}{% endcapture %}
+{% include task-result.html title="Tarea finalizada" content=r1 %}
 
 ---
 
@@ -153,37 +153,36 @@ En esta tarea se instalará la extensión oficial de Terraform en Visual Studio 
 
 #### Tarea 3.1. Abrir el Marketplace de extensiones
 
-- **Paso 1.** Da clic en el ícono de **Extensiones** del menú lateral izquierdo (o presiona `CTRL + SHIFT + X`).
+- **Paso 11.** Da clic en el ícono de **Extensiones** del menú lateral izquierdo (o presiona `CTRL + SHIFT + X`).
 
 #### Tarea 3.2. Buscar la extensión oficial
 
-- **Paso 2.** En la barra de búsqueda escribe:
+- **Paso 12.** En la barra de búsqueda escribe:
 
   ```
   Terraform
   ```
 
-- **Paso 3.** Localiza la extensión llamada **“Terraform”** publicada por **HashiCorp**.
+- **Paso 13.** Localiza la extensión llamada **“Terraform”** publicada por **HashiCorp**.
 
 #### Tarea 3.3. Instalar la extensión
 
-- **Paso 4.** Da clic en el botón **"Install"**.
+- **Paso 14.** Da clic en el botón **"Install"**.
 
   ![terraimg18]({{ page.images_base | relative_url }}/img9.png)   
 
-- **Paso 5.** Confirma la ventana emergente clic en **Trust Publisher & Install**
+- **Paso 15.** Confirma la ventana emergente clic en **Trust Publisher & Install**
 
-- **Paso 6.** Espera a que finalice la instalación.
+- **Paso 16.** Espera a que finalice la instalación.
 
 #### Tarea 3.4. Validar que funcione
 
-- **Paso 7.** Abre tu archivo `main.tf`.
+- **Paso 17.** Abre tu archivo `main.tf`.
 
-- **Paso 8.** Verifica que aparezca resaltado de sintaxis (colores) y que se activen sugerencias automáticas (`CTRL + SPACE`).
+- **Paso 18.** Verifica que aparezca resaltado de sintaxis (colores) y que se activen sugerencias automáticas (`CTRL + SPACE`).
 
-- **Paso 9.** Por el momento no ejecutamos nada mas.
+- **Paso 19.** Por el momento no ejecutamos nada mas.
 
-<div class="task-result">
-  <h3>Tarea finalizada</h3>
-  <p><strong>Resultado esperado:</strong> Visual Studio Code estará listo para trabajar con archivos Terraform de forma eficiente, con ayuda de resaltado de sintaxis, validación en tiempo real y autocompletado.</p>
-</div>
+{% assign results = site.data.task-results[page.slug].results %}
+{% capture r1 %}{{ results[2] }}{% endcapture %}
+{% include task-result.html title="Tarea finalizada" content=r1 %}

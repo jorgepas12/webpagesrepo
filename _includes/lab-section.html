@@ -5,7 +5,7 @@ Uso:
 {% endinclude %}
 {%- endcomment -%}
 
-<div class="lab-section">
+<div class="lab-section {{ include.class }}">
   {% if include.title %}<h2>{{ include.title }}</h2>{% endif %}
   <div class="lab-section-body">
     {{ include.content }}

@@ -13,6 +13,7 @@ prerequisites:
   - Cuenta activa en Azure.
 introduction:
   - En esta práctica configurarás **Terraform** en **Windows** descargarás el binario oficial, lo descomprimirás en `C:\Terraform`, agregarás esa ruta al **PATH** del sistema para poder usarlo desde cualquier terminal, ajustarás **Git Bash** como terminal por defecto en **Visual Studio Code** y verificarás la instalación ejecutando `terraform -version`.
+slug: lab1
 lab_number: 1
 final_result: >
   Terraform quedó instalado y operativo en Windows, accesible desde cualquier
@@ -84,11 +85,9 @@ En esta sección se descargará Terraform desde la fuente oficial, se instalará
 
 - **Paso 9.** Haz clic en **OK** o **Aceptar** en todas las ventanas para guardar los cambios.
 
-<div class="task-result">
-  <h3>Tarea finalizada</h3>
-  <p><strong>Resultado esperado:</strong> Terraform estará disponible desde cualquier terminal o PowerShell. 
-  No será necesario navegar manualmente al directorio para usarlo.</p>
-</div>
+{% assign results = site.data.task-results[page.slug].results %}
+{% capture r1 %}{{ results[0] }}{% endcapture %}
+{% include task-result.html title="Tarea finalizada" content=r1 %}
 
 ---
 
@@ -98,25 +97,25 @@ Se comprobará que Terraform esté disponible en la terminal de Git Bash integra
 
 ### 2.1. Abrir Visual Studio Code
 
-- **Paso 1.** Abre **Visual Studio Code**, puede estar como acceso directo en el escritorio o desde las **aplicaciones** del sistema operativo de **Windows**.
+- **Paso 10.** Abre **Visual Studio Code**, puede estar como acceso directo en el escritorio o desde las **aplicaciones** del sistema operativo de **Windows**.
 
-- **Paso 2.** Abrir la terminal integrada de Visual Studio Code **(menú `Terminal > New Terminal`)** o la combinacion de teclas **`CTRL + ñ`**, tambien puedes dar clic en el botón como lo muestra la imagen.
+- **Paso 11.** Abrir la terminal integrada de Visual Studio Code **(menú `Terminal > New Terminal`)** o la combinacion de teclas **`CTRL + ñ`**, tambien puedes dar clic en el botón como lo muestra la imagen.
 
   ![terraimg6]({{ page.images_base | relative_url }}/img6.png)
 
-- **Paso 3.** En la terminal abierta da clic en la pestaña y luego en **Select Default Profile**
+- **Paso 12.** En la terminal abierta da clic en la pestaña y luego en **Select Default Profile**
 
   ![terraimg7]({{ page.images_base | relative_url }}/img7.png)
 
-- **Paso 4.** En la ventana superior selecciona la opción **Git Bash**.
+- **Paso 13.** En la ventana superior selecciona la opción **Git Bash**.
 
   ![terraimg8]({{ page.images_base | relative_url }}/img8.png)
 
-- **Paso 5.** Ahora cierra el software de **Visual Studio Code** y vuelvelo abrir para que tomen efectos los cambios y **repite el paso 2**.
+- **Paso 14.** Ahora cierra el software de **Visual Studio Code** y vuelvelo abrir para que tomen efectos los cambios y **repite el paso 2**.
 
 ### 2.2. Verificar versión instalada
 
-- **Paso 6.** Con la Terminal abierta ejecuta el siguiente comando:
+- **Paso 15.** Con la Terminal abierta ejecuta el siguiente comando:
 
   ```bash
   terraform -version
@@ -124,7 +123,6 @@ Se comprobará que Terraform esté disponible en la terminal de Git Bash integra
     
   ![terraimg9]({{ page.images_base | relative_url }}/img9.png)
 
-<div class="task-result">
-  <h3>Tarea finalizada</h3>
-  <p><strong>Resultado esperado:</strong> Se mostrará en consola la versión actual de Terraform instalada.</p>
-</div> 
+{% assign results = site.data.task-results[page.slug].results %}
+{% capture r1 %}{{ results[1] }}{% endcapture %}
+{% include task-result.html title="Tarea finalizada" content=r1 %}

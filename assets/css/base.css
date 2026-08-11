@@ -22,7 +22,13 @@ body{
 /* Navbar global */
 .navbar{border-bottom:1px solid var(--c-line);background:#fff}
 .navbar .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;padding:14px 0;font-weight:800}
-.navbar .brand img{height:36px}
+.navbar .brand img{height: clamp(75px, 6vw, 82px)}
+.navbar .brand span {
+  font-size: 1.05rem;   /* un poco más pequeño que antes */
+  font-weight: 600;     /* semi-bold, no tan pesado */
+  color: var(--c-muted); /* gris sobrio, en vez de negro fuerte */
+  letter-spacing: 0.5px; /* sutil separación */
+}
 .nav ul{list-style:none;margin:0;padding:0;display:flex;gap:18px}
 .nav a{display:block;padding:16px 0;color:var(--c-muted);text-decoration:none}
 .nav a:hover{color:var(--c-accent)}
@@ -74,3 +80,12 @@ strong{color:#000}
 .course-subtitle { color: var(--c-muted); margin: 0 0 .35rem; }
 .course-intro { color: var(--c-ink); margin: .25rem 0 1.25rem; }
 .course .emoji { margin-right: .35rem; }
+
+/* --------EXTRAS------- */
+.extra-card {
+  border-left: 4px solid #3ba5e0; /* azul corporativo */
+  background: #f9fcff;
+}
+.lab-card-desc pre{
+  background:#0b0f14;color:#eee;padding:.75rem;border-radius:8px;overflow-x:auto;margin:.5rem 0 0;font-size:.9rem;
+}

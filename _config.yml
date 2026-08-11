@@ -1,8 +1,11 @@
-title: TRFRM-AZ
+# title: Netec Learning Labs
 description: Plataforma de Laboratorios · Terraform en Azure Essentials
 # Para project site:
 url: "https://jorgepas12.github.io"
 baseurl: "/webpagesrepo"   # CLAVE para que no se rompan rutas
+
+# Nombre completo del repo (owner/repo)
+repository: #cambiar aqui
 
 # Para local Recuerda ajustar rutas en los archivos
 # url: "http://localhost:4000"
@@ -16,6 +19,7 @@ plugins:
   - jekyll-remote-theme
   - jekyll-feed
   - jekyll-seo-tag
+  - jekyll-github-metadata 
 
 exclude:
   - .bundle
@@ -27,3 +31,4 @@ exclude:
   - README.md
 
 logo: /assets/img/neteclogo.png
+favicon: /assets/img/favicon.ico
