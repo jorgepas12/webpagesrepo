@@ -7,23 +7,40 @@
 #   - Genera el archivo labN.md con la plantilla actualizada.
 #   - Configura prev/next de forma automática.
 #   - No sobrescribe prácticas existentes.
+#   - Mantiene compatibilidad con el modo legacy.
+#   - Permite generar labs preparados para tracking con LabControl.
 #
 # Uso:
 #   1) Dar permisos de ejecución (solo la primera vez):
 #        chmod +x scripts/create_labs.sh
 #
-#   2) Crear, por ejemplo, 5 prácticas:
+#   2) Crear prácticas en modo legacy:
 #        ./scripts/create_labs.sh 5
+#
+#   3) Crear prácticas con tracking:
+#        ./scripts/create_labs.sh 5 terraform-aws-essentials
+#
+# El segundo argumento es el course_id estable utilizado por LabControl.
+#
+# Para pruebas puede sobrescribirse ROOT_DIR:
+#   ROOT_DIR=labs-test ./scripts/create_labs.sh 2 terraform-aws-essentials
 # ------------------------------------------------------------
 
 set -euo pipefail
 
-ROOT_DIR="labs"
+ROOT_DIR="${ROOT_DIR:-labs}"
 TOTAL_LABS="${1:-}"
+COURSE_ID="${2:-}"
+TRACKING_ENABLED="false"
 
 if [[ -z "${TOTAL_LABS}" ]]; then
-  echo "Uso: $0 <numero_de_labs>"
-  echo "Ejemplo: $0 5"
+  echo "Uso:"
+  echo "  $0 <numero_de_labs>"
+  echo "  $0 <numero_de_labs> <course_id>"
+  echo
+  echo "Ejemplos:"
+  echo "  $0 5"
+  echo "  $0 5 terraform-aws-essentials"
   exit 1
 fi
 
@@ -32,7 +49,31 @@ if ! [[ "${TOTAL_LABS}" =~ ^[1-9][0-9]*$ ]]; then
   exit 1
 fi
 
+if [[ -n "${COURSE_ID}" ]]; then
+  if ! [[ "${COURSE_ID}" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+    echo "Error: <course_id> debe usar kebab-case."
+    echo "Ejemplo válido: terraform-aws-essentials"
+    exit 1
+  fi
+
+  TRACKING_ENABLED="true"
+fi
+
 mkdir -p "${ROOT_DIR}"
+
+echo
+echo "Configuración:"
+echo "  Directorio: ${ROOT_DIR}"
+echo "  Labs: ${TOTAL_LABS}"
+
+if [[ "${TRACKING_ENABLED}" == "true" ]]; then
+  echo "  Tracking: habilitado"
+  echo "  Course ID: ${COURSE_ID}"
+else
+  echo "  Tracking: legacy"
+fi
+
+echo
 
 for i in $(seq 1 "${TOTAL_LABS}"); do
   LAB_DIR="${ROOT_DIR}/lab${i}"
@@ -53,6 +94,49 @@ for i in $(seq 1 "${TOTAL_LABS}"); do
     NEXT_PATH="/lab${NEXT_NUM}/lab${NEXT_NUM}/"
   fi
 
+  LAB_TRACKING_ID=$(printf "lab-%02d" "${i}")
+
+  if [[ "${TRACKING_ENABLED}" == "true" ]]; then
+    printf -v TRACKING_FRONT_MATTER \
+      'course_id: %s\nlab_id: %s\ntracking: true\n\n' \
+      "${COURSE_ID}" \
+      "${LAB_TRACKING_ID}"
+
+    TASK1_TRACKING='{% assign tracking_task_id = "task-01" %}'
+    TASK2_TRACKING='{% assign tracking_task_id = "task-02" %}'
+    TASK3_TRACKING='{% assign tracking_task_id = "task-03" %}'
+
+    TASK1_STEP1='{% include step_label.html id="task-01-step-01" %}'
+    TASK1_STEP2='{% include step_label.html id="task-01-step-02" %}'
+    TASK1_STEP3='{% include step_label.html id="task-01-step-03" %}'
+
+    TASK2_STEP1='{% include step_label.html id="task-02-step-01" %}'
+    TASK2_STEP2='{% include step_label.html id="task-02-step-02" %}'
+    TASK2_STEP3='{% include step_label.html id="task-02-step-03" %}'
+
+    TASK3_STEP1='{% include step_label.html id="task-03-step-01" %}'
+    TASK3_STEP2='{% include step_label.html id="task-03-step-02" %}'
+    TASK3_STEP3='{% include step_label.html id="task-03-step-03" %}'
+  else
+    TRACKING_FRONT_MATTER=""
+
+    TASK1_TRACKING=""
+    TASK2_TRACKING=""
+    TASK3_TRACKING=""
+
+    TASK1_STEP1='{% include step_label.html %}'
+    TASK1_STEP2='{% include step_label.html %}'
+    TASK1_STEP3='{% include step_label.html %}'
+
+    TASK2_STEP1='{% include step_label.html %}'
+    TASK2_STEP2='{% include step_label.html %}'
+    TASK2_STEP3='{% include step_label.html %}'
+
+    TASK3_STEP1='{% include step_label.html %}'
+    TASK3_STEP2='{% include step_label.html %}'
+    TASK3_STEP3='{% include step_label.html %}'
+  fi
+
   echo "Creando estructura para ${LAB_DIR}..."
   mkdir -p "${IMG_DIR}"
 
@@ -64,7 +148,7 @@ for i in $(seq 1 "${TOTAL_LABS}"); do
   cat > "${MD_FILE}" <<EOF
 ---
 layout: lab
-title: "Práctica ${i}: CAMBIAR_AQUI_NOMBRE_DE_LA_PRACTICA"
+${TRACKING_FRONT_MATTER}title: "Práctica ${i}: CAMBIAR_AQUI_NOMBRE_DE_LA_PRACTICA"
 permalink: /lab${i}/lab${i}/
 images_base: /labs/lab${i}/img
 duration: "## minutos"
@@ -103,12 +187,14 @@ next: ${NEXT_PATH}
 <!-- DESCRIPCION DE LA TAREA: RECOMENDADO 200-250 CARACTERES -->
 DESCRIPCION_DE_LA_TAREA.
 
-### Tarea 1.1. NOMBRE DE_LA_SUBTAREA
+${TASK1_TRACKING}
+
+### Tarea 1.1. NOMBRE_DE_LA_SUBTAREA
 
 <!-- DESCRIPCION DE LA SUBTAREA: RECOMENDADO 120-150 CARACTERES -->
 DESCRIPCION_DE_LA_SUBTAREA.
 
-- {% include step_label.html %} DESCRIPCION_DEL_PASO_1. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
+- ${TASK1_STEP1} DESCRIPCION_DEL_PASO_1. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
 
   > **Nota:** NOTA_GENERAL_DEL_PASO.
   {: .lab-note .info .compact}
@@ -122,7 +208,7 @@ DESCRIPCION_DE_LA_SUBTAREA.
   > **Salida esperada:** DESCRIPCION_DE_LA_SALIDA_ESPERADA_DEL_PASO_1.
   {: .lab-note .output .compact}
 
-- {% include step_label.html %} DESCRIPCION_DEL_PASO_2. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
+- ${TASK1_STEP2} DESCRIPCION_DEL_PASO_2. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
 
   > **Importante:** CONSIDERACION_IMPORTANTE_DEL_PASO.
   {: .lab-note .important .compact}
@@ -139,7 +225,7 @@ DESCRIPCION_DE_LA_SUBTAREA.
 <!-- DESCRIPCION DE LA SUBTAREA: RECOMENDADO 120-150 CARACTERES -->
 DESCRIPCION_DE_LA_SUBTAREA.
 
-- {% include step_label.html %} DESCRIPCION_DEL_PASO_3. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
+- ${TASK1_STEP3} DESCRIPCION_DEL_PASO_3. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
 
   > **Advertencia:** ADVERTENCIA_DEL_PASO.
   {: .lab-note .warning .compact}
@@ -164,12 +250,14 @@ DESCRIPCION_DE_LA_SUBTAREA.
 <!-- DESCRIPCION DE LA TAREA: RECOMENDADO 200-250 CARACTERES -->
 DESCRIPCION_DE_LA_TAREA.
 
+${TASK2_TRACKING}
+
 ### Tarea 2.1. NOMBRE_DE_LA_SUBTAREA
 
 <!-- DESCRIPCION DE LA SUBTAREA: RECOMENDADO 120-150 CARACTERES -->
 DESCRIPCION_DE_LA_SUBTAREA.
 
-- {% include step_label.html %} DESCRIPCION_DEL_PASO_1. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
+- ${TASK2_STEP1} DESCRIPCION_DEL_PASO_1. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
 
   > **Nota:** NOTA_GENERAL_DEL_PASO.
   {: .lab-note .info .compact}
@@ -181,7 +269,7 @@ DESCRIPCION_DE_LA_SUBTAREA.
   > **Salida esperada:** DESCRIPCION_DE_LA_SALIDA_ESPERADA_DEL_PASO_1.
   {: .lab-note .output .compact}
 
-- {% include step_label.html %} DESCRIPCION_DEL_PASO_2. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
+- ${TASK2_STEP2} DESCRIPCION_DEL_PASO_2. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
 
   > **Importante:** CONSIDERACION_IMPORTANTE_DEL_PASO.
   {: .lab-note .important .compact}
@@ -198,7 +286,7 @@ DESCRIPCION_DE_LA_SUBTAREA.
 <!-- DESCRIPCION DE LA SUBTAREA: RECOMENDADO 120-150 CARACTERES -->
 DESCRIPCION_DE_LA_SUBTAREA.
 
-- {% include step_label.html %} DESCRIPCION_DEL_PASO_3. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
+- ${TASK2_STEP3} DESCRIPCION_DEL_PASO_3. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
 
   > **Advertencia:** ADVERTENCIA_DEL_PASO.
   {: .lab-note .warning .compact}
@@ -222,12 +310,14 @@ DESCRIPCION_DE_LA_SUBTAREA.
 <!-- DESCRIPCION DE LA TAREA: RECOMENDADO 200-250 CARACTERES -->
 DESCRIPCION_DE_LA_TAREA.
 
+${TASK3_TRACKING}
+
 ### Tarea 3.1. NOMBRE_DE_LA_SUBTAREA
 
 <!-- DESCRIPCION DE LA SUBTAREA: RECOMENDADO 120-150 CARACTERES -->
 DESCRIPCION_DE_LA_SUBTAREA.
 
-- {% include step_label.html %} DESCRIPCION_DEL_PASO_1. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
+- ${TASK3_STEP1} DESCRIPCION_DEL_PASO_1. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
 
   > **Nota:** NOTA_GENERAL_DEL_PASO.
   {: .lab-note .info .compact}
@@ -239,7 +329,7 @@ DESCRIPCION_DE_LA_SUBTAREA.
   > **Salida esperada:** DESCRIPCION_DE_LA_SALIDA_ESPERADA_DEL_PASO_1.
   {: .lab-note .output .compact}
 
-- {% include step_label.html %} DESCRIPCION_DEL_PASO_2. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
+- ${TASK3_STEP2} DESCRIPCION_DEL_PASO_2. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
 
   > **Importante:** CONSIDERACION_IMPORTANTE_DEL_PASO.
   {: .lab-note .important .compact}
@@ -256,7 +346,7 @@ DESCRIPCION_DE_LA_SUBTAREA.
 <!-- DESCRIPCION DE LA SUBTAREA: RECOMENDADO 120-150 CARACTERES -->
 DESCRIPCION_DE_LA_SUBTAREA.
 
-- {% include step_label.html %} DESCRIPCION_DEL_PASO_3. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
+- ${TASK3_STEP3} DESCRIPCION_DEL_PASO_3. <!-- DESCRIPCION DEL PASO: RECOMENDADO 120 CARACTERES -->
 
   > **Advertencia:** ADVERTENCIA_DEL_PASO.
   {: .lab-note .warning .compact}
@@ -327,6 +417,26 @@ Completa los campos de la cabecera YAML sin cambiar sus nombres:
 - prev y next:
     Son generados automáticamente por este script para navegación entre labs.
 
+Cuando el script se ejecuta con un course_id:
+
+  ./scripts/create_labs.sh 5 terraform-aws-essentials
+
+también se generan:
+
+  course_id: terraform-aws-essentials
+  lab_id: lab-01
+  tracking: true
+
+Estos campos forman parte del contrato de tracking con LabControl.
+
+IMPORTANTE:
+
+- course_id debe permanecer estable después de publicarse.
+- lab_id debe permanecer estable después de publicarse.
+- No cambies estos IDs porque cambie el título visible.
+- No cambies estos IDs porque cambie la posición del laboratorio.
+- No reutilices un ID eliminado para representar otro elemento.
+
 ---------------------------------------------------------------------
 2. ESTRUCTURA GENERAL DE UNA TAREA
 ---------------------------------------------------------------------
@@ -342,6 +452,15 @@ Cada tarea debe seguir esta estructura:
   DESCRIPCION_DE_LA_SUBTAREA.
 
   - {% include step_label.html %} DESCRIPCION_DEL_PASO.
+
+Cuando tracking está habilitado, cada tarea debe declarar además un
+identificador persistente antes de sus subtareas:
+
+  {% assign tracking_task_id = "task-01" %}
+
+y cada paso debe utilizar un ID explícito y único:
+
+  - {% include step_label.html id="task-01-step-01" %} DESCRIPCION_DEL_PASO.
 
 La descripción de la tarea debe explicar qué se realizará y para qué.
 Como referencia, se recomiendan aproximadamente 200-250 caracteres.
@@ -370,10 +489,20 @@ Si la práctica necesita más tareas:
 3) Cambia la numeración de todas sus subtareas.
 4) Cambia el resultado asociado results[N].
 5) Cambia el identificador de support-prompt.html.
+6) Si tracking está habilitado, asigna un task_id nuevo y no reutilizado.
+7) Si tracking está habilitado, asigna step_id nuevos y únicos.
 
 Ejemplo para una Tarea 4:
 
   ## 🔧 Tarea 4. NOMBRE DE LA TAREA — ## min
+
+Con tracking habilitado:
+
+  {% assign tracking_task_id = "task-04" %}
+
+Un paso de esa tarea puede utilizar:
+
+  {% include step_label.html id="task-04-step-01" %}
 
 Al finalizar debe contener:
 
@@ -393,6 +522,10 @@ El arreglo results utiliza índice base 0:
   Tarea 6 -> results[5]
   Tarea N -> results[N-1]
 
+El número visual de la tarea y su task_id persistente son conceptos
+independientes. Si una tarea cambia de posición después de publicarse,
+debe conservar su task_id.
+
 ---------------------------------------------------------------------
 4. SUBTAREAS
 ---------------------------------------------------------------------
@@ -409,6 +542,9 @@ Ejemplo para la Tarea 4:
 
 No existe un límite fijo de subtareas.
 
+Las subtareas no requieren actualmente un identificador de tracking
+independiente.
+
 ---------------------------------------------------------------------
 5. PASOS
 ---------------------------------------------------------------------
@@ -417,6 +553,18 @@ Cada acción que debe realizar el participante debe escribirse como un paso
 independiente utilizando:
 
   - {% include step_label.html %} DESCRIPCION_DEL_PASO.
+
+En modo tracking utiliza un ID explícito y único dentro del laboratorio:
+
+  - {% include step_label.html id="task-01-step-01" %} DESCRIPCION_DEL_PASO.
+
+Ejemplos de IDs:
+
+  task-01-step-01
+  task-01-step-02
+  task-01-step-03
+  task-02-step-01
+  task-02-step-02
 
 No combines varias acciones importantes dentro de un único paso cuando puedan
 realizarse o validarse por separado.
@@ -428,6 +576,15 @@ Cada paso debe contener, cuando corresponda:
 - Una imagen de referencia.
 - Un bloque de código o comando.
 - Una salida esperada o criterio de validación.
+
+IMPORTANTE PARA TRACKING:
+
+- No renumeres IDs ya publicados.
+- No cambies un step_id solamente porque cambió el texto visible.
+- No cambies un step_id solamente porque cambió su posición.
+- Los pasos nuevos reciben IDs nuevos.
+- No reutilices IDs eliminados para representar pasos diferentes.
+- El número visual "Paso N." continúa siendo independiente del step_id.
 
 ---------------------------------------------------------------------
 6. NOTAS, IMPORTANTES Y ADVERTENCIAS
@@ -583,6 +740,8 @@ la tarea. Ejemplos utilizados en esta plantilla:
 
 La numeración y el texto "Tarea N." son más importantes que el icono.
 
+El icono no forma parte del contrato de tracking.
+
 ---------------------------------------------------------------------
 14. QUÉ SE PUEDE ELIMINAR
 ---------------------------------------------------------------------
@@ -599,6 +758,14 @@ Si un elemento no aplica a la práctica puede eliminarse, por ejemplo:
 
 No elimines los elementos estructurales necesarios para el funcionamiento del
 layout, resultados o navegación sin revisar primero su dependencia.
+
+Si tracking está habilitado, tampoco elimines o cambies sin revisar:
+
+- course_id
+- lab_id
+- tracking
+- tracking_task_id
+- step_id explícitos ya publicados
 
 ---------------------------------------------------------------------
 15. VALIDACIÓN FINAL DEL ARCHIVO
@@ -618,8 +785,50 @@ Antes de considerar terminado el laboratorio verifica:
 - Cada tarea utiliza support-prompt.html con su número correcto.
 - Las imágenes utilizadas existen en la carpeta img de la práctica.
 - El resultado final describe lo que el participante habrá conseguido.
+- Si tracking está habilitado, existen course_id, lab_id y tracking: true.
+- Cada tarea rastreable tiene un tracking_task_id estable.
+- Cada paso rastreable tiene un step_id explícito y único.
+- No se renumeraron ni reutilizaron IDs ya publicados.
 - No permanecen textos de marcador como CAMBIAR_AQUI, DESCRIPCION_, NOMBRE_DE_,
   CODIGO_, PREREQUISITO_, RESULTADO_ o ## min en la versión final.
+
+---------------------------------------------------------------------
+16. COMPATIBILIDAD LEGACY Y TRACKING
+---------------------------------------------------------------------
+
+El script mantiene dos modos de ejecución.
+
+Modo legacy:
+
+  ./scripts/create_labs.sh 5
+
+Este modo conserva el comportamiento histórico y genera pasos con:
+
+  {% include step_label.html %}
+
+No agrega:
+
+  course_id
+  lab_id
+  tracking
+  tracking_task_id
+  step_id explícito
+
+Modo tracking:
+
+  ./scripts/create_labs.sh 5 terraform-aws-essentials
+
+Este modo genera automáticamente:
+
+  course_id: terraform-aws-essentials
+  lab_id: lab-01
+  tracking: true
+
+También agrega task_id y step_id explícitos para preparar el laboratorio
+para su integración con LabControl.
+
+El modo legacy permite seguir utilizando repositorios anteriores sin
+migrarlos inmediatamente.
 
 ======================================================================
 FIN DE LA GUÍA DE USO DE LA PLANTILLA
