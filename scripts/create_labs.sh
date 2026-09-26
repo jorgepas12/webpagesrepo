@@ -245,7 +245,7 @@ DESCRIPCION_DE_LA_SUBTAREA.
 
 ---
 
-## ☁️ Tarea 2. NOMBRE DE LA TAREA — ## min
+## ☁️ Tarea 2. NOMBRE DE_LA_TAREA — ## min
 
 <!-- DESCRIPCION DE LA TAREA: RECOMENDADO 200-250 CARACTERES -->
 DESCRIPCION_DE_LA_TAREA.
@@ -305,7 +305,7 @@ DESCRIPCION_DE_LA_SUBTAREA.
 
 ---
 
-## 🚀 Tarea 3. NOMBRE DE LA TAREA — ## min
+## 🚀 Tarea 3. NOMBRE_DE_LA_TAREA — ## min
 
 <!-- DESCRIPCION DE LA TAREA: RECOMENDADO 200-250 CARACTERES -->
 DESCRIPCION_DE_LA_TAREA.
@@ -378,28 +378,7 @@ tareas, subtareas y pasos según lo requiera el contenido.
 1. FRONT MATTER
 ---------------------------------------------------------------------
 
-Completa los campos de la cabecera YAML sin cambiar sus nombres.
-
-Cuando el script se ejecuta con course_id:
-
-  ./scripts/create_labs.sh 5 terraform-aws-essentials
-
-también genera:
-
-  course_id: terraform-aws-essentials
-  lab_id: lab-01
-  tracking: true
-
-Estos campos forman parte del contrato con LabControl.
-
-IMPORTANTE:
-
-- course_id es estable.
-- lab_id es estable.
-- No cambies estos IDs solamente porque cambie el título o posición del lab.
-- Los IDs publicados no deben reutilizarse para representar otro elemento.
-
-Campos generales:
+Completa los campos de la cabecera YAML sin cambiar sus nombres:
 
 - title:
     Nombre completo de la práctica.
@@ -426,12 +405,37 @@ Campos generales:
 
 - references:
     Documentación oficial o referencias técnicas relevantes.
+    Mantén la estructura:
+
+      - text: DESCRIPCION
+        url: URL
 
 - permalink, images_base, slug y lab_number:
-    Son generados automáticamente.
+    Son generados automáticamente. No deben modificarse salvo que cambie
+    deliberadamente la estructura del sitio.
 
 - prev y next:
-    Son generados automáticamente por este script.
+    Son generados automáticamente por este script para navegación entre labs.
+
+Cuando el script se ejecuta con un course_id:
+
+  ./scripts/create_labs.sh 5 terraform-aws-essentials
+
+también se generan:
+
+  course_id: terraform-aws-essentials
+  lab_id: lab-01
+  tracking: true
+
+Estos campos forman parte del contrato de tracking con LabControl.
+
+IMPORTANTE:
+
+- course_id debe permanecer estable después de publicarse.
+- lab_id debe permanecer estable después de publicarse.
+- No cambies estos IDs porque cambie el título visible.
+- No cambies estos IDs porque cambie la posición del laboratorio.
+- No reutilices un ID eliminado para representar otro elemento.
 
 ---------------------------------------------------------------------
 2. ESTRUCTURA GENERAL DE UNA TAREA
@@ -443,26 +447,32 @@ Cada tarea debe seguir esta estructura:
 
   DESCRIPCION_DE_LA_TAREA.
 
-Cuando tracking está habilitado, cada tarea debe declarar:
-
-  {% assign tracking_task_id = "task-01" %}
-
-Después:
-
   ### Tarea N.1. NOMBRE_DE_LA_SUBTAREA
 
   DESCRIPCION_DE_LA_SUBTAREA.
+
+  - {% include step_label.html %} DESCRIPCION_DEL_PASO.
+
+Cuando tracking está habilitado, cada tarea debe declarar además un
+identificador persistente antes de sus subtareas:
+
+  {% assign tracking_task_id = "task-01" %}
+
+y cada paso debe utilizar un ID explícito y único:
 
   - {% include step_label.html id="task-01-step-01" %} DESCRIPCION_DEL_PASO.
 
 La descripción de la tarea debe explicar qué se realizará y para qué.
 Como referencia, se recomiendan aproximadamente 200-250 caracteres.
 
+La descripción de cada subtarea debe indicar claramente el objetivo de esa
+sección. Como referencia, se recomiendan aproximadamente 120-150 caracteres.
+
 ---------------------------------------------------------------------
-3. TAREAS E IDENTIFICADORES
+3. TAREAS
 ---------------------------------------------------------------------
 
-Las tareas principales se numeran visualmente:
+Las tareas principales se numeran de forma consecutiva:
 
   Tarea 1
   Tarea 2
@@ -470,60 +480,85 @@ Las tareas principales se numeran visualmente:
   Tarea 4
   ...
 
-Cuando tracking está habilitado, utilizan IDs persistentes:
+La plantilla incluye solamente 3 tareas como ejemplo.
 
-  task-01
-  task-02
-  task-03
-  task-04
+Si la práctica necesita más tareas:
 
-El número visible y el ID persistente son conceptos distintos.
+1) Duplica COMPLETA una sección de tarea existente.
+2) Cambia el encabezado de la tarea.
+3) Cambia la numeración de todas sus subtareas.
+4) Cambia el resultado asociado results[N].
+5) Cambia el identificador de support-prompt.html.
+6) Si tracking está habilitado, asigna un task_id nuevo y no reutilizado.
+7) Si tracking está habilitado, asigna step_id nuevos y únicos.
 
-Si una tarea cambia de posición después de ser publicada, conserva su ID.
+Ejemplo para una Tarea 4:
 
-Para agregar una Tarea 4 con tracking:
+  ## 🔧 Tarea 4. NOMBRE DE LA TAREA — ## min
+
+Con tracking habilitado:
 
   {% assign tracking_task_id = "task-04" %}
 
-Los pasos pueden utilizar:
+Un paso de esa tarea puede utilizar:
 
   {% include step_label.html id="task-04-step-01" %}
 
-IMPORTANTE:
+Al finalizar debe contener:
 
-No reutilices un task_id eliminado para una tarea diferente.
+  {% capture r4 %}{{ results[3] }}{% endcapture %}
+  {% include task-result.html title="Tarea finalizada" content=r4 %}
+
+  {% include support-prompt.html task="tarea4" %}
+
+IMPORTANTE:
+El arreglo results utiliza índice base 0:
+
+  Tarea 1 -> results[0]
+  Tarea 2 -> results[1]
+  Tarea 3 -> results[2]
+  Tarea 4 -> results[3]
+  Tarea 5 -> results[4]
+  Tarea 6 -> results[5]
+  Tarea N -> results[N-1]
+
+El número visual de la tarea y su task_id persistente son conceptos
+independientes. Si una tarea cambia de posición después de publicarse,
+debe conservar su task_id.
 
 ---------------------------------------------------------------------
 4. SUBTAREAS
 ---------------------------------------------------------------------
 
 Cada tarea puede contener tantas subtareas como sea necesario.
+La numeración debe conservar la relación con la tarea principal.
 
-La numeración visual debe conservar la relación con la tarea principal:
+Ejemplo para la Tarea 4:
 
-  ### Tarea 4.1. PRIMERA_SUBTAREA
-  ### Tarea 4.2. SEGUNDA_SUBTAREA
+  ### Tarea 4.1. PRIMERA SUBTAREA
+  ### Tarea 4.2. SEGUNDA SUBTAREA
+  ### Tarea 4.3. TERCERA SUBTAREA
+  ### Tarea 4.4. CUARTA SUBTAREA
 
-Las subtareas no requieren actualmente un ID de tracking independiente.
+No existe un límite fijo de subtareas.
+
+Las subtareas no requieren actualmente un identificador de tracking
+independiente.
 
 ---------------------------------------------------------------------
 5. PASOS
 ---------------------------------------------------------------------
 
 Cada acción que debe realizar el participante debe escribirse como un paso
-independiente.
-
-Modo legacy:
+independiente utilizando:
 
   - {% include step_label.html %} DESCRIPCION_DEL_PASO.
 
-Modo tracking:
+En modo tracking utiliza un ID explícito y único dentro del laboratorio:
 
   - {% include step_label.html id="task-01-step-01" %} DESCRIPCION_DEL_PASO.
 
-Los step_id deben ser únicos dentro de cada laboratorio.
-
-Ejemplo:
+Ejemplos de IDs:
 
   task-01-step-01
   task-01-step-02
@@ -531,21 +566,33 @@ Ejemplo:
   task-02-step-01
   task-02-step-02
 
-IMPORTANTE:
+No combines varias acciones importantes dentro de un único paso cuando puedan
+realizarse o validarse por separado.
+
+Cada paso debe contener, cuando corresponda:
+
+- Una descripción clara de la acción.
+- Una Nota, Importante o Advertencia.
+- Una imagen de referencia.
+- Un bloque de código o comando.
+- Una salida esperada o criterio de validación.
+
+IMPORTANTE PARA TRACKING:
 
 - No renumeres IDs ya publicados.
-- No cambies un ID solamente porque cambió el texto visible.
-- Los nuevos pasos reciben IDs nuevos.
+- No cambies un step_id solamente porque cambió el texto visible.
+- No cambies un step_id solamente porque cambió su posición.
+- Los pasos nuevos reciben IDs nuevos.
 - No reutilices IDs eliminados para representar pasos diferentes.
-
-El número visible "Paso N." continúa siendo generado automáticamente por
-step_label.html.
+- El número visual "Paso N." continúa siendo independiente del step_id.
 
 ---------------------------------------------------------------------
 6. NOTAS, IMPORTANTES Y ADVERTENCIAS
 ---------------------------------------------------------------------
 
-Utiliza solamente los bloques que aporten información útil.
+Usa los bloques obligatoriamente aportando informacion util en cada paso.
+Nota, Advertencia, Importante, Siempre ponerla debajo del texto del paso.
+Salida esperada, siempr ponerla al finalizar el paso y antes del siguiente paso.
 
 Nota informativa:
 
@@ -567,6 +614,9 @@ Salida esperada:
   > **Salida esperada:** TEXTO.
   {: .lab-note .output .compact}
 
+No es obligatorio incluir los tres tipos de nota en todos los pasos.
+Utiliza solamente el que corresponda al contexto.
+
 ---------------------------------------------------------------------
 7. BLOQUES DE CÓDIGO
 ---------------------------------------------------------------------
@@ -574,19 +624,22 @@ Salida esperada:
 Cada comando o fragmento que el participante deba ejecutar debe tener su
 propio bloque de código.
 
-Ejemplo:
+Ejemplo Bash:
 
   \`\`\`bash
   COMANDO
   \`\`\`
 
-Cambia el lenguaje cuando corresponda:
+Cambia el identificador del lenguaje cuando corresponda, por ejemplo:
 
-  yaml
-  json
-  sql
-  powershell
-  python
+  \`\`\`yaml
+  \`\`\`json
+  \`\`\`sql
+  \`\`\`powershell
+  \`\`\`python
+
+Evita colocar varios pasos independientes dentro de un único bloque de código
+si deben ejecutarse y validarse por separado.
 
 ---------------------------------------------------------------------
 8. SALIDA ESPERADA
@@ -600,6 +653,9 @@ Utiliza:
   > **Salida esperada:** DESCRIPCION_DE_LA_VALIDACION.
   {: .lab-note .output .compact}
 
+La salida esperada no necesita reproducir siempre todo el texto del comando.
+Puede describir el estado, recurso, valor o comportamiento que debe observarse.
+
 ---------------------------------------------------------------------
 9. IMÁGENES
 ---------------------------------------------------------------------
@@ -608,9 +664,12 @@ La carpeta de imágenes de esta práctica se encuentra en:
 
   labs/labN/img/
 
-Para insertar una imagen:
+Para insertar una imagen mediante el mecanismo de la plantilla utiliza:
 
   {% include step_image.html %}
+
+Conserva este include solamente en los pasos que realmente tengan una imagen.
+Si el paso no requiere imagen, elimínalo.
 
 No es necesario agregar una imagen a cada paso.
 
@@ -621,31 +680,44 @@ No es necesario agregar una imagen a cada paso.
 Cada tarea debe terminar con un resultado esperado asociado a
 _data/task-results.yml.
 
-La asignación debe realizarse una sola vez:
+La asignación de results debe realizarse una sola vez antes del primer uso:
 
   {% assign results = site.data.task-results[page.slug].results %}
 
-Después utiliza:
+En esta plantilla se realiza en la Tarea 1.
+No es necesario repetir el assign en las tareas siguientes.
+
+Después utiliza el índice correspondiente:
 
   {% capture r1 %}{{ results[0] }}{% endcapture %}
   {% include task-result.html title="Tarea finalizada" content=r1 %}
 
-El arreglo results utiliza índice base 0:
+Para la Tarea 2:
 
-  Tarea 1 -> results[0]
-  Tarea 2 -> results[1]
-  Tarea 3 -> results[2]
-  Tarea N -> results[N-1]
+  {% capture r2 %}{{ results[1] }}{% endcapture %}
+
+Para la Tarea 3:
+
+  {% capture r3 %}{{ results[2] }}{% endcapture %}
+
+Y así sucesivamente.
 
 ---------------------------------------------------------------------
 11. PROMPT DE SOPORTE
 ---------------------------------------------------------------------
 
-Después del resultado de cada tarea utiliza:
+Después del resultado de cada tarea debe incluirse el prompt de soporte
+correspondiente:
 
   {% include support-prompt.html task="tarea1" %}
 
-La numeración debe coincidir con la tarea visible.
+La numeración debe coincidir exactamente con la tarea:
+
+  Tarea 1 -> task="tarea1"
+  Tarea 2 -> task="tarea2"
+  Tarea 3 -> task="tarea3"
+  Tarea 4 -> task="tarea4"
+  ...
 
 ---------------------------------------------------------------------
 12. SEPARACIÓN ENTRE TAREAS
@@ -655,40 +727,45 @@ Separa cada tarea principal utilizando:
 
   ---
 
+No utilices este separador entre pasos o subtareas de la misma tarea.
+
 ---------------------------------------------------------------------
 13. ICONOS DE LAS TAREAS
 ---------------------------------------------------------------------
 
-El icono del encabezado es visual.
-
-Ejemplos:
+El icono del encabezado es visual y puede cambiarse de acuerdo con el tema de
+la tarea. Ejemplos utilizados en esta plantilla:
 
   🔎  ☁️  🚀
 
-No forma parte del contrato de tracking.
+La numeración y el texto "Tarea N." son más importantes que el icono.
+
+El icono no forma parte del contrato de tracking.
 
 ---------------------------------------------------------------------
-14. COMPATIBILIDAD LEGACY
+14. QUÉ SE PUEDE ELIMINAR
 ---------------------------------------------------------------------
 
-Si ejecutas:
+Si un elemento no aplica a la práctica puede eliminarse, por ejemplo:
 
-  ./scripts/create_labs.sh 5
+- Prerequisitos adicionales.
+- Notas generales.
+- Referencias adicionales.
+- Una Nota/Importante/Advertencia de un paso.
+- {% include step_image.html %} cuando no existe imagen.
+- Subtareas que no sean necesarias.
+- Tareas de ejemplo que no formen parte de la práctica real.
 
-sin course_id, la plantilla conserva el comportamiento histórico:
+No elimines los elementos estructurales necesarios para el funcionamiento del
+layout, resultados o navegación sin revisar primero su dependencia.
 
-  {% include step_label.html %}
+Si tracking está habilitado, tampoco elimines o cambies sin revisar:
 
-y no agrega:
-
-  course_id
-  lab_id
-  tracking
-  tracking_task_id
-  step_id explícito
-
-Esto permite seguir utilizando repositorios antiguos sin migrarlos
-inmediatamente a LabControl.
+- course_id
+- lab_id
+- tracking
+- tracking_task_id
+- step_id explícitos ya publicados
 
 ---------------------------------------------------------------------
 15. VALIDACIÓN FINAL DEL ARCHIVO
@@ -700,19 +777,58 @@ Antes de considerar terminado el laboratorio verifica:
 - El objetivo describe claramente el aprendizaje esperado.
 - La introducción está completa.
 - Todas las tareas están numeradas consecutivamente.
-- Cada acción está separada como paso cuando corresponde.
+- Todas las subtareas corresponden al número de su tarea.
+- Cada acción del participante está separada como paso cuando corresponde.
 - Los comandos tienen bloques de código adecuados.
-- Los pasos importantes tienen una salida esperada.
-- Los índices results[N] corresponden a cada tarea.
-- Cada tarea utiliza support-prompt.html correctamente.
-- Las imágenes utilizadas existen.
-- El resultado final es correcto.
-- Si tracking está habilitado, existen course_id y lab_id.
-- Cada tarea rastreable tiene tracking_task_id.
+- Los pasos importantes tienen una salida esperada o criterio de validación.
+- Los índices results[N] corresponden a cada número de tarea.
+- Cada tarea utiliza support-prompt.html con su número correcto.
+- Las imágenes utilizadas existen en la carpeta img de la práctica.
+- El resultado final describe lo que el participante habrá conseguido.
+- Si tracking está habilitado, existen course_id, lab_id y tracking: true.
+- Cada tarea rastreable tiene un tracking_task_id estable.
 - Cada paso rastreable tiene un step_id explícito y único.
-- No se modificaron IDs ya publicados.
+- No se renumeraron ni reutilizaron IDs ya publicados.
 - No permanecen textos de marcador como CAMBIAR_AQUI, DESCRIPCION_, NOMBRE_DE_,
-  CODIGO_, PREREQUISITO_, RESULTADO_ o ## min.
+  CODIGO_, PREREQUISITO_, RESULTADO_ o ## min en la versión final.
+
+---------------------------------------------------------------------
+16. COMPATIBILIDAD LEGACY Y TRACKING
+---------------------------------------------------------------------
+
+El script mantiene dos modos de ejecución.
+
+Modo legacy:
+
+  ./scripts/create_labs.sh 5
+
+Este modo conserva el comportamiento histórico y genera pasos con:
+
+  {% include step_label.html %}
+
+No agrega:
+
+  course_id
+  lab_id
+  tracking
+  tracking_task_id
+  step_id explícito
+
+Modo tracking:
+
+  ./scripts/create_labs.sh 5 terraform-aws-essentials
+
+Este modo genera automáticamente:
+
+  course_id: terraform-aws-essentials
+  lab_id: lab-01
+  tracking: true
+
+También agrega task_id y step_id explícitos para preparar el laboratorio
+para su integración con LabControl.
+
+El modo legacy permite seguir utilizando repositorios anteriores sin
+migrarlos inmediatamente.
 
 ======================================================================
 FIN DE LA GUÍA DE USO DE LA PLANTILLA
