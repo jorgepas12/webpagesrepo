@@ -1,56 +1,19 @@
 # _data/courses.yml
-azure_essentials:
-  title: "Terraform en Azure Essentials"
-  intro: "Cada laboratorio está diseñado para una experiencia práctica. Haz clic para comenzar."
+terraform_aws_essentials:
+  title: "NOMBRE_DEL_CURSO_AQUI" # COLOCAR EL NOMBRE DEL CURSO
+  intro: "DESCRIPCIÓN_DEL_CURSO_AQUI"
   labs:
-    - id: lab1
-      title: "Instalación y Verificación de Terraform en Windows para Azure"
-      url:  "/capitulo2/lab1/"
-      duration: "25 min"
-      desc: "Instalación de Terraform y preparación del entorno con Azure CLI."
-    - id: lab2
-      title: "Autenticación del Proveedor Azure en Terraform"
-      url:  "/capitulo3/lab2/"
-      duration: "15 min"
-      desc: "Login con Azure CLI y configuración del provider en Terraform."
-    - id: lab3
-      title: "Definición de Recursos en Terraform"
-      url:  "/capitulo3/lab3/"
-      duration: "15 min"
-      desc: "Crea recursos básicos en Azure: grupo, red virtual, instancia."
-    - id: lab4
-      title: "Creación y Asignación de Variables en Terraform"
-      url:  "/capitulo4/lab4/"
-      duration: "15 min"
-      desc: "Uso de variables locales en **main.tf** para organizar y reutilizar la definición de recursos en Azure."
-    - id: lab5
-      title: "Creación de Outputs en Terraform"
-      url:  "/capitulo4/lab5/"
-      duration: "15 min"
-      desc: "Declaración de salidas **(output)** en main.tf para mostrar información clave tras la ejecución."
-    - id: lab6
-      title: "Implementación del Ciclo de Vida con Terraform CLI"
-      url:  "/capitulo5/lab6/"
-      duration: "35 min"
-      desc: "Uso de Terraform CLI para ejecutar el ciclo de vida completo: init, plan, apply, output y destroy."
-    - id: lab7
-      title: "Leer e interpretar el archivo *.tfstate* generado"
-      url:  "/capitulo6/lab7/"
-      duration: "20 min"
-      desc: "Comprensión del archivo **terraform.tfstate** y cómo Terraform usa su contenido para rastrear recursos."
-    - id: lab8
-      title: "Crear archivo *.tfvars* con claves y etiqueta sensible"
-      url:  "/capitulo7/lab8/"
-      duration: "20 min"
-      desc: "Uso de **.tfvars** para separar valores de variables y manejar datos sensibles de forma segura."
-    - id: lab9
-      title: "Estructurar un Proyecto Básico en Terraform"
-      url:  "/capitulo8/lab9/"
-      duration: "20 min"
-      desc: "Estructuración del proyecto en archivos separados para aplicar buenas prácticas y facilitar su mantenimiento."
+
+    - id: lab1 
+      title: "NOMBRE_DE_LA_PRACTICA_1" # NOMBRE DE LA PRACTICA
+      url:  "/lab1/lab1/"
+      duration: "## min" # AJUSTAR TIEMPO DE LA PRACTICA
+      desc: "DESCRIPCION_CORTA_DE_LA_PRACTICA" # DESCRIPCION BREVE DE LA PRACTICA 100-120 CARACTERES
+
+    # ESTRUCTURA DE SUB-PRACTICA OCUPAR SI ES NECESARIO SINO BORRAR
     # - id: lab61
     #   number: "6.1"
     #   title: "Despliegue de servicios en Docker Swarm"
     #   url:  "/capitulo6/lab61/"
     #   duration: "60 min"
-    #   desc: "Despliega un servicio en Docker Swarm con réplicas, secrets y actualizaciones controladas."
+    #   desc: "DESCRIPCION_CORTA_DE_LA_PRACTICA" # DESCRIPCION BREVE DE LA PRACTICA 100-120 CARACTERES

@@ -42,7 +42,7 @@ ehthumbs.db
 # Archivos de entorno locales
 .env
 .env.*
-GitHubPush-Instructores.md
-Instalacion-Instructores.md
-Instrucciones-Instructores.md
-EquipoDC.md
+instrucciones/GitHubPush-Instructores.md
+instrucciones/Instalacion-Instructores.md
+instrucciones/Instrucciones-Instructores.md
+instrucciones/EquipoDC.md

@@ -1,18 +1,11 @@
-# title: Netec Learning Labs
-description: Plataforma de Laboratorios · Terraform en Azure Essentials
+title: Netec Learning Labs
+description: Plataforma de Laboratorios
 # Para project site:
-url: "https://jorgepas12.github.io"
-baseurl: "/webpagesrepo"   # CLAVE para que no se rompan rutas
+url: "https://netec-mx.github.io"
+baseurl: "/NOMBRE_DEL_REPO"   # DEFINIR EL NOMBRE DEL REPOSITORIO PARA LAS PRACTICAS
 
 # Nombre completo del repo (owner/repo)
-repository: #cambiar aqui
-
-# Para local Recuerda ajustar rutas en los archivos
-# url: "http://localhost:4000"
-# baseurl: ""
-
-# Si usas un tema remoto (opcional):
-# remote_theme: owner/tema
+repository: netec-mx/NOMBRE_DEL_REPO # MISMO NOMBRE QUE EL DE LA LINEA 5
 
 plugins:
   - jekyll-include-cache
@@ -29,6 +22,13 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - README.md
+  - scripts/
 
 logo: /assets/img/neteclogo.png
 favicon: /assets/img/favicon.ico
+
+# =====================================================================
+# CONFIGURACIÓN LOCAL (DESCOMENTAR SI TRABAJAS EN MÚLTIPLES LABS A LA VEZ)
+# =====================================================================
+# port: 4001             # Puerto predeterminado: 4000. Rango sugerido: 4001 al 4999
+# livereload_port: 35730 # Puerto predeterminado: 35729. Rango sugerido: 35730 al 35799
