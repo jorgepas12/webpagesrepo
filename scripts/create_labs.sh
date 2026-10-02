@@ -28,6 +28,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MANIFEST_GENERATOR="${SCRIPT_DIR}/generate_lab_manifest.mjs"
+
 ROOT_DIR="${ROOT_DIR:-labs}"
 TOTAL_LABS="${1:-}"
 COURSE_ID="${2:-}"
@@ -57,6 +60,17 @@ if [[ -n "${COURSE_ID}" ]]; then
   fi
 
   TRACKING_ENABLED="true"
+
+  if ! command -v node >/dev/null 2>&1; then
+    echo "Error: Node.js es requerido para generar manifiestos de LabControl."
+    exit 1
+  fi
+
+  if [[ ! -f "${MANIFEST_GENERATOR}" ]]; then
+    echo "Error: no se encontró el generador de manifiestos:"
+    echo "  ${MANIFEST_GENERATOR}"
+    exit 1
+  fi
 fi
 
 mkdir -p "${ROOT_DIR}"
@@ -837,7 +851,17 @@ FIN DE LA GUÍA DE USO DE LA PLANTILLA
 EOF
 
   echo "  -> Creado ${MD_FILE}"
+
+  if [[ "${TRACKING_ENABLED}" == "true" ]]; then
+    echo "  -> Generando manifiesto LabControl..."
+
+    node "${MANIFEST_GENERATOR}" "${MD_FILE}"
+  fi
 done
 
 echo
 echo "Listo. Se generaron las prácticas en ${ROOT_DIR}/"
+
+if [[ "${TRACKING_ENABLED}" == "true" ]]; then
+  echo "Los manifiestos LabControl se generaron en .labcontrol/manifests/."
+fi
