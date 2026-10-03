@@ -18,14 +18,47 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Validate LabControl tooling
+        run: |
+          node scripts/test_lab_manifest.mjs
+          node scripts/test_sync_lab_manifests.mjs
+          node --check scripts/generate_lab_manifest.mjs
+          node --check scripts/sync_lab_manifests.mjs
+
+      - name: Generate and sync LabControl manifests
+        env:
+          LABCONTROL_API_URL: ${{ vars.LABCONTROL_API_URL }}
+          LABCONTROL_SYNC_TOKEN: ${{ secrets.LABCONTROL_SYNC_TOKEN }}
+        run: |
+          if [[ -z "${LABCONTROL_API_URL}" || -z "${LABCONTROL_SYNC_TOKEN}" ]]; then
+            echo "LabControl sync is not configured for this repository."
+            echo "Skipping manifest generation and synchronization."
+            exit 0
+          fi
+
+          echo "LabControl integration is configured."
+          echo "Generating manifests..."
+
+          node scripts/generate_lab_manifest.mjs --all
+
+          echo "Synchronizing manifests with LabControl..."
+
+          node scripts/sync_lab_manifests.mjs --all
+
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3'        # OK
+          ruby-version: '3.3'
           bundler-cache: true
 
       - name: Install dependencies
@@ -44,9 +77,11 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
