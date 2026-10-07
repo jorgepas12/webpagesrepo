@@ -49,3 +49,5 @@ instrucciones/EquipoDC.md
 
 # LabControl generated manifests
 .labcontrol/
+# LabControl public course catalogs
+labcontrol/
