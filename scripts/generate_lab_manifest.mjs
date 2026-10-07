@@ -19,8 +19,17 @@ import process from 'node:process';
 
 const MANIFEST_VERSION = 1;
 
-const TRACKING_ID_PATTERN =
+const COURSE_ID_PATTERN =
   /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+const LAB_ID_PATTERN =
+  /^l\d{3}$/;
+
+const TASK_ID_PATTERN =
+  /^t\d{3}$/;
+
+const STEP_ID_PATTERN =
+  /^s\d{3}$/;
 
 const FRONT_MATTER_PATTERN =
   /^---\s*\r?\n([\s\S]*?)\r?\n---\s*(?:\r?\n|$)/;
@@ -171,14 +180,40 @@ function validateTrackingId(
   value,
   label,
 ) {
+  const patterns = {
+    course_id:
+      COURSE_ID_PATTERN,
+    lab_id:
+      LAB_ID_PATTERN,
+    task_id:
+      TASK_ID_PATTERN,
+    step_id:
+      STEP_ID_PATTERN,
+  };
+
+  const pattern =
+    patterns[label];
+
   if (
     !value ||
-    !TRACKING_ID_PATTERN.test(
+    !pattern ||
+    !pattern.test(
       value,
     )
   ) {
+    const expected = {
+      course_id:
+        'kebab-case, por ejemplo terraform-aws-essentials',
+      lab_id:
+        'lNNN, por ejemplo l001',
+      task_id:
+        'tNNN, por ejemplo t001',
+      step_id:
+        'sNNN, por ejemplo s001',
+    };
+
     throw new Error(
-      `${label} inválido: "${value ?? ''}". Debe usar kebab-case.`,
+      `${label} inválido: "${value ?? ''}". Formato esperado: ${expected[label]}.`,
     );
   }
 }

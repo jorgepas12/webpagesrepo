@@ -55,13 +55,13 @@ const manifest = {
   tasks: [
     {
       taskId:
-        'task-01',
+        't001',
       position:
         1,
       steps: [
         {
           stepId:
-            'task-01-step-01',
+            's001',
           position:
             1,
         },
@@ -98,7 +98,7 @@ try {
   const manifestFile =
     join(
       manifestDir,
-      'lab-01.json',
+      'l001.json',
     );
 
   await writeFile(
@@ -156,7 +156,7 @@ try {
           courseId:
             'course-one',
           labId:
-            'lab-01',
+            'l001',
         },
       );
     },
@@ -224,7 +224,7 @@ try {
 
       assert.equal(
         captured.url,
-        'https://labs.example.test/manifest-sync/courses/course-one/labs/lab-01',
+        'https://labs.example.test/manifest-sync/courses/course-one/labs/l001',
       );
 
       assert.equal(
@@ -239,7 +239,7 @@ try {
 
       assert.equal(
         result.labId,
-        'lab-01',
+        'l001',
       );
     },
   );

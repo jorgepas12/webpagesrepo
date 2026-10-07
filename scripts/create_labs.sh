@@ -108,7 +108,7 @@ for i in $(seq 1 "${TOTAL_LABS}"); do
     NEXT_PATH="/lab${NEXT_NUM}/lab${NEXT_NUM}/"
   fi
 
-  LAB_TRACKING_ID=$(printf "lab-%02d" "${i}")
+  LAB_TRACKING_ID=$(printf "l%03d" "${i}")
 
   if [[ "${TRACKING_ENABLED}" == "true" ]]; then
     printf -v TRACKING_FRONT_MATTER \
@@ -116,21 +116,21 @@ for i in $(seq 1 "${TOTAL_LABS}"); do
       "${COURSE_ID}" \
       "${LAB_TRACKING_ID}"
 
-    TASK1_TRACKING='{% assign tracking_task_id = "task-01" %}'
-    TASK2_TRACKING='{% assign tracking_task_id = "task-02" %}'
-    TASK3_TRACKING='{% assign tracking_task_id = "task-03" %}'
+    TASK1_TRACKING='{% assign tracking_task_id = "t001" %}'
+    TASK2_TRACKING='{% assign tracking_task_id = "t002" %}'
+    TASK3_TRACKING='{% assign tracking_task_id = "t003" %}'
 
-    TASK1_STEP1='{% include step_label.html id="task-01-step-01" %}'
-    TASK1_STEP2='{% include step_label.html id="task-01-step-02" %}'
-    TASK1_STEP3='{% include step_label.html id="task-01-step-03" %}'
+    TASK1_STEP1='{% include step_label.html id="s001" %}'
+    TASK1_STEP2='{% include step_label.html id="s002" %}'
+    TASK1_STEP3='{% include step_label.html id="s003" %}'
 
-    TASK2_STEP1='{% include step_label.html id="task-02-step-01" %}'
-    TASK2_STEP2='{% include step_label.html id="task-02-step-02" %}'
-    TASK2_STEP3='{% include step_label.html id="task-02-step-03" %}'
+    TASK2_STEP1='{% include step_label.html id="s004" %}'
+    TASK2_STEP2='{% include step_label.html id="s005" %}'
+    TASK2_STEP3='{% include step_label.html id="s006" %}'
 
-    TASK3_STEP1='{% include step_label.html id="task-03-step-01" %}'
-    TASK3_STEP2='{% include step_label.html id="task-03-step-02" %}'
-    TASK3_STEP3='{% include step_label.html id="task-03-step-03" %}'
+    TASK3_STEP1='{% include step_label.html id="s007" %}'
+    TASK3_STEP2='{% include step_label.html id="s008" %}'
+    TASK3_STEP3='{% include step_label.html id="s009" %}'
   else
     TRACKING_FRONT_MATTER=""
 
@@ -178,6 +178,7 @@ introduction:
   - INTRODUCCION_DE_LA_PRACTICA_BREVE_RESUMEN_EN_UN_SOLO_PARRAFO_RECOMENDADO
 slug: lab${i}
 lab_number: ${i}
+position: ${i}
 final_result: >
   RESULTADO_FINAL_ESPERADO_DE_LA_PRACTICA_EN_UN_SOLO_PARRAFO_RECOMENDADO
 notes:
@@ -438,7 +439,7 @@ Cuando el script se ejecuta con un course_id:
 también se generan:
 
   course_id: terraform-aws-essentials
-  lab_id: lab-01
+  lab_id: l001
   tracking: true
 
 Estos campos forman parte del contrato de tracking con LabControl.
@@ -470,11 +471,11 @@ Cada tarea debe seguir esta estructura:
 Cuando tracking está habilitado, cada tarea debe declarar además un
 identificador persistente antes de sus subtareas:
 
-  {% assign tracking_task_id = "task-01" %}
+  {% assign tracking_task_id = "t001" %}
 
 y cada paso debe utilizar un ID explícito y único:
 
-  - {% include step_label.html id="task-01-step-01" %} DESCRIPCION_DEL_PASO.
+  - {% include step_label.html id="s001" %} DESCRIPCION_DEL_PASO.
 
 La descripción de la tarea debe explicar qué se realizará y para qué.
 Como referencia, se recomiendan aproximadamente 200-250 caracteres.
@@ -512,11 +513,11 @@ Ejemplo para una Tarea 4:
 
 Con tracking habilitado:
 
-  {% assign tracking_task_id = "task-04" %}
+  {% assign tracking_task_id = "t004" %}
 
 Un paso de esa tarea puede utilizar:
 
-  {% include step_label.html id="task-04-step-01" %}
+  {% include step_label.html id="s010" %}
 
 Al finalizar debe contener:
 
@@ -570,15 +571,15 @@ independiente utilizando:
 
 En modo tracking utiliza un ID explícito y único dentro del laboratorio:
 
-  - {% include step_label.html id="task-01-step-01" %} DESCRIPCION_DEL_PASO.
+  - {% include step_label.html id="s001" %} DESCRIPCION_DEL_PASO.
 
 Ejemplos de IDs:
 
-  task-01-step-01
-  task-01-step-02
-  task-01-step-03
-  task-02-step-01
-  task-02-step-02
+  s001
+  s002
+  s003
+  s004
+  s005
 
 No combines varias acciones importantes dentro de un único paso cuando puedan
 realizarse o validarse por separado.
@@ -835,7 +836,7 @@ Modo tracking:
 Este modo genera automáticamente:
 
   course_id: terraform-aws-essentials
-  lab_id: lab-01
+  lab_id: l001
   tracking: true
 
 También agrega task_id y step_id explícitos para preparar el laboratorio

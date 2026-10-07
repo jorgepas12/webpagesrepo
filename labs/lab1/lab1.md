@@ -2,7 +2,7 @@
 layout: lab
 
 course_id: terraform-aws-essentials
-lab_id: lab-01
+lab_id: l001
 tracking: true
 
 title: "Práctica 1: CAMBIAR_AQUI_NOMBRE_DE_LA_PRACTICA"
@@ -25,6 +25,7 @@ introduction:
 
 slug: lab1
 lab_number: 1
+position: 1
 
 final_result: >
   RESULTADO_FINAL_ESPERADO_DE_LA_PRACTICA_EN_UN_SOLO_PARRAFO_RECOMENDADO
@@ -52,15 +53,15 @@ next: /lab2/lab2/
 
 DESCRIPCION DE LA TAREA
 
-{% assign tracking_task_id = "task-01" %}
+{% assign tracking_task_id = "t001" %}
 
 ### Tarea 1.1. NOMBRE DE LA SUBTAREA
 
 DESCRIPCION DE LA SUBTAREA
 
-- {% include step_label.html id="step-01" %} Una vez descargado el archivo, haz clic derecho sobre él.
+- {% include step_label.html id="s001" %} Una vez descargado el archivo, haz clic derecho sobre él.
 
-- {% include step_label.html id="step-02" %} Haz clic en **Abrir con Visual Studio Code**.
+- {% include step_label.html id="s002" %} Haz clic en **Abrir con Visual Studio Code**.
 
   {% include step_image.html %}
 

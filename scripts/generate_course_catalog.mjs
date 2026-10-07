@@ -18,8 +18,11 @@ import process from 'node:process';
 
 const CATALOG_VERSION = 1;
 
-const TRACKING_ID_PATTERN =
+const COURSE_ID_PATTERN =
   /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+const LAB_ID_PATTERN =
+  /^l\d{3}$/;
 
 const FRONT_MATTER_PATTERN =
   /^---\s*\r?\n([\s\S]*?)\r?\n---\s*(?:\r?\n|$)/;
@@ -106,14 +109,24 @@ function validateTrackingId(
   value,
   label,
 ) {
+  const pattern =
+    label === 'lab_id'
+      ? LAB_ID_PATTERN
+      : COURSE_ID_PATTERN;
+
   if (
     !value ||
-    !TRACKING_ID_PATTERN.test(
+    !pattern.test(
       value,
     )
   ) {
+    const expected =
+      label === 'lab_id'
+        ? 'lNNN, por ejemplo l001'
+        : 'kebab-case';
+
     throw new Error(
-      `${label} inválido: "${value ?? ''}".`,
+      `${label} inválido: "${value ?? ''}". Formato esperado: ${expected}.`,
     );
   }
 }
@@ -256,6 +269,12 @@ async function loadLabMetadata(
       'lab_number',
     );
 
+  const position =
+    parseInteger(
+      frontMatter.position,
+      'position',
+    );
+
   const title =
     frontMatter.title?.trim();
 
@@ -308,8 +327,7 @@ async function loadLabMetadata(
       labId,
       number:
         labNumber,
-      position:
-        labNumber,
+      position,
       name:
         title,
       durationMinutes:
@@ -419,6 +437,9 @@ async function main() {
     const seenNumbers =
       new Set();
 
+    const seenPositions =
+      new Set();
+
     for (
       const lab
       of labs
@@ -443,12 +464,96 @@ async function main() {
         );
       }
 
+      if (
+        seenPositions.has(
+          lab.position,
+        )
+      ) {
+        throw new Error(
+          `${courseId}: position duplicada "${lab.position}".`,
+        );
+      }
+
+      if (
+        lab.number !==
+        lab.position
+      ) {
+        throw new Error(
+          `${courseId}: ${lab.labId} tiene lab_number ${lab.number} pero position ${lab.position}. Ambos deben coincidir.`,
+        );
+      }
+
       seenLabIds.add(
         lab.labId,
       );
 
       seenNumbers.add(
         lab.number,
+      );
+
+      seenPositions.add(
+        lab.position,
+      );
+    }
+
+    const expectedSequence =
+      Array.from(
+        {
+          length:
+            labs.length,
+        },
+        (
+          _,
+          index,
+        ) =>
+          index + 1,
+      );
+
+    const actualNumbers =
+      labs
+        .map(
+          lab =>
+            lab.number,
+        )
+        .sort(
+          (
+            left,
+            right,
+          ) =>
+            left - right,
+        );
+
+    const actualPositions =
+      labs
+        .map(
+          lab =>
+            lab.position,
+        )
+        .sort(
+          (
+            left,
+            right,
+          ) =>
+            left - right,
+        );
+
+    if (
+      actualNumbers.join(',') !==
+      expectedSequence.join(',')
+    ) {
+      throw new Error(
+        `${courseId}: lab_number debe ser consecutivo 1..${labs.length}. ` +
+        `Se encontró: ${actualNumbers.join(', ')}.`,
+      );
+    }
+
+    if (
+      actualPositions.join(',') !==
+      expectedSequence.join(',')
+    ) {
+      throw new Error(
+        `${courseId}: position debe ser consecutiva 1..${labs.length}. ` +
+        `Se encontró: ${actualPositions.join(', ')}.`,
       );
     }
 
