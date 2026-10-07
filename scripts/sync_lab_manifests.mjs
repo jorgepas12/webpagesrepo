@@ -15,8 +15,11 @@ import {
   pathToFileURL,
 } from 'node:url';
 
-const TRACKING_ID_PATTERN =
+const COURSE_ID_PATTERN =
   /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+const LAB_ID_PATTERN =
+  /^l\d{3}$/;
 
 const HASH_PATTERN =
   /^sha256:[a-f0-9]{64}$/i;
@@ -25,14 +28,24 @@ function validateTrackingId(
   value,
   label,
 ) {
+  const pattern =
+    label === 'lab_id'
+      ? LAB_ID_PATTERN
+      : COURSE_ID_PATTERN;
+
   if (
     !value ||
-    !TRACKING_ID_PATTERN.test(
+    !pattern.test(
       value,
     )
   ) {
+    const expected =
+      label === 'lab_id'
+        ? 'lNNN, por ejemplo l001'
+        : 'kebab-case';
+
     throw new Error(
-      `${label} inválido: "${value ?? ''}".`,
+      `${label} inválido: "${value ?? ''}". Formato esperado: ${expected}.`,
     );
   }
 }

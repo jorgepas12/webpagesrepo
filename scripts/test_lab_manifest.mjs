@@ -125,7 +125,7 @@ function buildLab({
   courseId =
     'terraform-aws-essentials',
   labId =
-    'lab-01',
+    'l001',
   tracking =
     'true',
   body,
@@ -147,7 +147,7 @@ function readManifest(
   courseId =
     'terraform-aws-essentials',
   labId =
-    'lab-01',
+    'l001',
 ) {
   const file =
     join(
@@ -219,10 +219,10 @@ try {
                 body: `
 ## Tarea 1. Preparar entorno — 10 min
 
-{% assign tracking_task_id = "task-01" %}
+{% assign tracking_task_id = "t001" %}
 
-- {% include step_label.html id="task-01-step-01" %} Primer paso.
-- {% include step_label.html id="task-01-step-02" %} Segundo paso.
+- {% include step_label.html id="s001" %} Primer paso.
+- {% include step_label.html id="s002" %} Segundo paso.
 `,
               }),
             );
@@ -254,7 +254,7 @@ try {
 
           assert.equal(
             manifest.tasks[0].taskId,
-            'task-01',
+            't001',
           );
 
           assert.equal(
@@ -267,13 +267,13 @@ try {
             [
               {
                 stepId:
-                  'task-01-step-01',
+                  's001',
                 position:
                   1,
               },
               {
                 stepId:
-                  'task-01-step-02',
+                  's002',
                 position:
                   2,
               },
@@ -297,9 +297,9 @@ try {
                 body: `
 ## Tarea 1. Preparar entorno
 
-{% assign tracking_task_id = "task-01" %}
+{% assign tracking_task_id = "t001" %}
 
-- {% include step_label.html id="task-01-step-01" %} Primer paso.
+- {% include step_label.html id="s001" %} Primer paso.
 `,
               }),
             );
@@ -346,9 +346,9 @@ try {
                 body: `
 ## Tarea 1. Preparar entorno
 
-{% assign tracking_task_id = "task-01" %}
+{% assign tracking_task_id = "t001" %}
 
-- {% include step_label.html id="task-01-step-01" %} Primer paso.
+- {% include step_label.html id="s001" %} Primer paso.
 `,
               }),
             );
@@ -369,10 +369,10 @@ try {
               body: `
 ## Tarea 1. Preparar entorno
 
-{% assign tracking_task_id = "task-01" %}
+{% assign tracking_task_id = "t001" %}
 
-- {% include step_label.html id="task-01-step-01" %} Primer paso.
-- {% include step_label.html id="task-01-step-02" %} Segundo paso.
+- {% include step_label.html id="s001" %} Primer paso.
+- {% include step_label.html id="s002" %} Segundo paso.
 `,
             }),
             'utf8',
@@ -410,15 +410,15 @@ try {
                 body: `
 ## Tarea 1. Primera
 
-{% assign tracking_task_id = "task-01" %}
+{% assign tracking_task_id = "t001" %}
 
-- {% include step_label.html id="step-01" %} Primer paso.
+- {% include step_label.html id="s001" %} Primer paso.
 
 ## Tarea 2. Segunda
 
-{% assign tracking_task_id = "task-02" %}
+{% assign tracking_task_id = "t002" %}
 
-- {% include step_label.html id="step-01" %} Paso duplicado.
+- {% include step_label.html id="s001" %} Paso duplicado.
 `,
               }),
             );
@@ -451,15 +451,15 @@ try {
                 body: `
 ## Tarea 1. Primera
 
-{% assign tracking_task_id = "task-01" %}
+{% assign tracking_task_id = "t001" %}
 
-- {% include step_label.html id="task-01-step-01" %} Primer paso.
+- {% include step_label.html id="s001" %} Primer paso.
 
 ## Tarea 2. Segunda
 
-{% assign tracking_task_id = "task-01" %}
+{% assign tracking_task_id = "t001" %}
 
-- {% include step_label.html id="task-01-step-02" %} Segundo paso.
+- {% include step_label.html id="s002" %} Segundo paso.
 `,
               }),
             );
@@ -492,7 +492,7 @@ try {
                 body: `
 ## Tarea 1. Preparar entorno
 
-{% assign tracking_task_id = "task-01" %}
+{% assign tracking_task_id = "t001" %}
 
 - {% include step_label.html %} Paso legacy.
 `,
@@ -529,9 +529,9 @@ try {
                 body: `
 ## Tarea 1. Preparar entorno
 
-{% assign tracking_task_id = "task-01" %}
+{% assign tracking_task_id = "t001" %}
 
-- {% include step_label.html id="task-01-step-01" %} Paso.
+- {% include step_label.html id="s001" %} Paso.
 `,
               }),
             );
@@ -563,9 +563,9 @@ try {
               body: `
 ## Tarea 1. Preparar entorno
 
-{% assign tracking_task_id = "task-01" %}
+{% assign tracking_task_id = "t001" %}
 
-- {% include step_label.html id="task-01-step-01" %} Paso.
+- {% include step_label.html id="s001" %} Paso.
 `,
             }),
           );
@@ -575,13 +575,13 @@ try {
             'labs/labx/lab1.md',
             buildLab({
               labId:
-                'lab-99',
+                'l099',
               body: `
 ## Tarea 1. Ignorada
 
-{% assign tracking_task_id = "task-99" %}
+{% assign tracking_task_id = "t099" %}
 
-- {% include step_label.html id="task-99-step-01" %} Paso.
+- {% include step_label.html id="s099" %} Paso.
 `,
             }),
           );
@@ -604,7 +604,7 @@ try {
 
           assert.equal(
             manifest.tasks[0].taskId,
-            'task-01',
+            't001',
           );
         },
       );
@@ -624,17 +624,17 @@ try {
                 body: `
 ## Tarea 1. Preparar entorno
 
-{% assign tracking_task_id = "task-01" %}
+{% assign tracking_task_id = "t001" %}
 
-- {% include step_label.html id="task-01-step-01" %} Paso real.
+- {% include step_label.html id="s001" %} Paso real.
 
 <!--
 Este bloque es documentación y no forma parte del Lab.
 
-{% assign tracking_task_id = "task-99" %}
+{% assign tracking_task_id = "t099" %}
 
 - {% include step_label.html %} Ejemplo legacy.
-- {% include step_label.html id="task-99-step-01" %} Ejemplo documentado.
+- {% include step_label.html id="s099" %} Ejemplo documentado.
 -->
 `,
               }),
@@ -657,7 +657,7 @@ Este bloque es documentación y no forma parte del Lab.
 
           assert.equal(
             manifest.tasks[0].taskId,
-            'task-01',
+            't001',
           );
 
           assert.deepEqual(
@@ -665,11 +665,119 @@ Este bloque es documentación y no forma parte del Lab.
             [
               {
                 stepId:
-                  'task-01-step-01',
+                  's001',
                 position:
                   1,
               },
             ],
+          );
+        },
+      );
+    },
+  );
+
+
+  test(
+    'rechaza lab_id legacy',
+    () => {
+      withTempRoot(
+        root => {
+          const lab =
+            writeLab(
+              root,
+              'labs/lab1/lab1.md',
+              buildLab({
+                labId:
+                  'lab-01',
+                body: `
+## Tarea 1. Preparar entorno
+
+{% assign tracking_task_id = "t001" %}
+
+- {% include step_label.html id="s001" %} Paso.
+`,
+              }),
+            );
+
+          const stderr =
+            runGeneratorExpectFailure(
+              root,
+              lab,
+            );
+
+          assert.match(
+            stderr,
+            /lab_id inválido/,
+          );
+        },
+      );
+    },
+  );
+
+  test(
+    'rechaza task_id legacy',
+    () => {
+      withTempRoot(
+        root => {
+          const lab =
+            writeLab(
+              root,
+              'labs/lab1/lab1.md',
+              buildLab({
+                body: `
+## Tarea 1. Preparar entorno
+
+{% assign tracking_task_id = "task-01" %}
+
+- {% include step_label.html id="s001" %} Paso.
+`,
+              }),
+            );
+
+          const stderr =
+            runGeneratorExpectFailure(
+              root,
+              lab,
+            );
+
+          assert.match(
+            stderr,
+            /task_id inválido/,
+          );
+        },
+      );
+    },
+  );
+
+  test(
+    'rechaza step_id legacy',
+    () => {
+      withTempRoot(
+        root => {
+          const lab =
+            writeLab(
+              root,
+              'labs/lab1/lab1.md',
+              buildLab({
+                body: `
+## Tarea 1. Preparar entorno
+
+{% assign tracking_task_id = "t001" %}
+
+- {% include step_label.html id="step-01" %} Paso.
+`,
+              }),
+            );
+
+          const stderr =
+            runGeneratorExpectFailure(
+              root,
+              lab,
+            );
+
+          assert.match(
+            stderr,
+            /step_id inválido/,
           );
         },
       );

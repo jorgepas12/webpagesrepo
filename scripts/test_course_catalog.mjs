@@ -60,10 +60,10 @@ async function writeLab(
     courseId =
       'terraform-aws-essentials',
     labId =
-      `lab-${String(
+      `l${String(
         number,
       ).padStart(
-        2,
+        3,
         '0',
       )}`,
     tracking =
@@ -73,6 +73,8 @@ async function writeLab(
     duration =
       '20 minutos',
     labNumber =
+      number,
+    position =
       number,
   } = {},
 ) {
@@ -100,12 +102,13 @@ title: "${title}"
 permalink: /lab${number}/lab${number}/
 duration: "${duration}"
 lab_number: ${labNumber}
+position: ${position}
 ---
 
 ## Tarea 1. Test
-{% assign tracking_task_id = "task-01" %}
+{% assign tracking_task_id = "t001" %}
 
-- {% include step_label.html id="step-01" %} Test.
+- {% include step_label.html id="s001" %} Test.
 `;
 
   await writeFile(
@@ -156,7 +159,7 @@ async function writeManifest(
         tasks: [
           {
             taskId:
-              'task-01',
+              't001',
             title:
               'Test',
             position:
@@ -164,7 +167,7 @@ async function writeManifest(
             steps: [
               {
                 stepId:
-                  'step-01',
+                  's001',
                 position:
                   1,
               },
@@ -255,13 +258,13 @@ await test(
       await writeManifest(
         root,
         'terraform-aws-essentials',
-        'lab-01',
+        'l001',
       );
 
       await writeManifest(
         root,
         'terraform-aws-essentials',
-        'lab-02',
+        'l002',
       );
 
       const result =
@@ -310,7 +313,7 @@ await test(
       assert(
         catalog.labs[0]
           .labId ===
-          'lab-01',
+          'l001',
         'El primer labId es incorrecto.',
       );
 
@@ -380,7 +383,7 @@ await test(
       await writeManifest(
         root,
         'terraform-aws-essentials',
-        'lab-01',
+        'l001',
       );
 
       const result =
@@ -455,13 +458,13 @@ await test(
       await writeManifest(
         root,
         'terraform-aws-essentials',
-        'lab-01',
+        'l001',
       );
 
       await writeManifest(
         root,
         'terraform-aws-essentials',
-        'lab-02',
+        'l002',
       );
 
       const result =
@@ -523,6 +526,250 @@ await test(
           'no existe un manifest generado',
         ),
         'No reportó el manifest faltante.',
+      );
+    } finally {
+      await rm(
+        root,
+        {
+          recursive:
+            true,
+          force:
+            true,
+        },
+      );
+    }
+  },
+);
+
+
+await test(
+  'rechaza lab_id con formato legacy',
+  async () => {
+    const root =
+      await createRoot();
+
+    try {
+      await writeLab(
+        root,
+        1,
+        {
+          labId:
+            'lab-01',
+        },
+      );
+
+      const result =
+        runGenerator(
+          root,
+        );
+
+      assert(
+        result.status !==
+          0,
+        'El catálogo aceptó un lab_id legacy.',
+      );
+
+      assert(
+        result.stderr.includes(
+          'lab_id inválido',
+        ),
+        'No reportó el formato inválido de lab_id.',
+      );
+    } finally {
+      await rm(
+        root,
+        {
+          recursive:
+            true,
+          force:
+            true,
+        },
+      );
+    }
+  },
+);
+
+
+await test(
+  'rechaza huecos en lab_number',
+  async () => {
+    const root =
+      await createRoot();
+
+    try {
+      await writeLab(
+        root,
+        1,
+        {
+          labNumber:
+            1,
+          position:
+            1,
+        },
+      );
+
+      await writeLab(
+        root,
+        2,
+        {
+          labNumber:
+            3,
+          position:
+            3,
+        },
+      );
+
+      await writeManifest(
+        root,
+        'terraform-aws-essentials',
+        'l001',
+      );
+
+      await writeManifest(
+        root,
+        'terraform-aws-essentials',
+        'l002',
+      );
+
+      const result =
+        runGenerator(
+          root,
+        );
+
+      assert(
+        result.status !==
+          0,
+        'El generador aceptó un hueco en lab_number.',
+      );
+
+      assert(
+        result.stderr.includes(
+          'lab_number debe ser consecutivo',
+        ),
+        'No reportó el hueco de lab_number.',
+      );
+    } finally {
+      await rm(
+        root,
+        {
+          recursive:
+            true,
+          force:
+            true,
+        },
+      );
+    }
+  },
+);
+
+await test(
+  'rechaza posiciones duplicadas',
+  async () => {
+    const root =
+      await createRoot();
+
+    try {
+      await writeLab(
+        root,
+        1,
+        {
+          position:
+            1,
+        },
+      );
+
+      await writeLab(
+        root,
+        2,
+        {
+          position:
+            1,
+        },
+      );
+
+      await writeManifest(
+        root,
+        'terraform-aws-essentials',
+        'l001',
+      );
+
+      await writeManifest(
+        root,
+        'terraform-aws-essentials',
+        'l002',
+      );
+
+      const result =
+        runGenerator(
+          root,
+        );
+
+      assert(
+        result.status !==
+          0,
+        'El generador aceptó position duplicada.',
+      );
+
+      assert(
+        result.stderr.includes(
+          'position duplicada',
+        ),
+        'No reportó position duplicada.',
+      );
+    } finally {
+      await rm(
+        root,
+        {
+          recursive:
+            true,
+          force:
+            true,
+        },
+      );
+    }
+  },
+);
+
+await test(
+  'rechaza lab_number y position desalineados',
+  async () => {
+    const root =
+      await createRoot();
+
+    try {
+      await writeLab(
+        root,
+        1,
+        {
+          labNumber:
+            1,
+          position:
+            2,
+        },
+      );
+
+      await writeManifest(
+        root,
+        'terraform-aws-essentials',
+        'l001',
+      );
+
+      const result =
+        runGenerator(
+          root,
+        );
+
+      assert(
+        result.status !==
+          0,
+        'El generador aceptó number y position distintos.',
+      );
+
+      assert(
+        result.stderr.includes(
+          'Ambos deben coincidir',
+        ),
+        'No reportó la desalineación.',
       );
     } finally {
       await rm(
