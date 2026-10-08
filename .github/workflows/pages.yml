@@ -33,9 +33,16 @@ jobs:
           node scripts/test_lab_manifest.mjs
           node scripts/test_sync_lab_manifests.mjs
           node scripts/test_course_catalog.mjs
+          node scripts/test_lab_id_registry.mjs
+          node scripts/test_authoring_flow.mjs
           node --check scripts/generate_lab_manifest.mjs
           node --check scripts/generate_course_catalog.mjs
           node --check scripts/sync_lab_manifests.mjs
+          node --check scripts/lab_id_registry.mjs
+          node --check scripts/normalize_course_labs.mjs
+          node --check scripts/test_authoring_flow.mjs
+          bash -n scripts/create_labs.sh
+          bash -n scripts/insert_lab.sh
 
       - name: Generate LabControl course catalog
         run: |

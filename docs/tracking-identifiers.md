@@ -1,11 +1,11 @@
 # Tracking identifiers
 
-Este documento define el contrato de identificación utilizado para integrar
-los laboratorios Jekyll con LabControl.
+Este documento define el contrato estable de identificación utilizado para
+integrar los laboratorios Jekyll con LabControl.
 
 ## Objetivo
 
-Los identificadores de tracking permiten relacionar de forma estable:
+Los identificadores permiten relacionar de forma estable:
 
 - cursos;
 - laboratorios;
@@ -14,14 +14,14 @@ Los identificadores de tracking permiten relacionar de forma estable:
 
 con los registros almacenados en LabControl.
 
-Los identificadores no representan posiciones visuales.
+Los identificadores representan identidad, no posición visual.
 
-Una vez publicado un identificador, no debe cambiarse aunque el elemento sea
-renombrado o reordenado.
+Una vez publicado un identificador no debe cambiarse aunque el elemento sea
+renombrado, reordenado, retirado o reactivado.
 
 ## Jerarquía
 
-La identidad lógica completa es:
+La identidad lógica es:
 
 ```text
 course_id
@@ -34,195 +34,281 @@ Ejemplo:
 
 ```text
 terraform-aws-essentials
-└── lab-01
-    ├── task-01
-    │   ├── task-01-step-01
-    │   └── task-01-step-02
-    └── task-02
-        ├── task-02-step-01
-        └── task-02-step-02
+└── l001
+    ├── t001
+    │   ├── s001
+    │   └── s002
+    └── t002
+        ├── s003
+        └── s004
 ```
 
-## Formato
+## Formatos oficiales
 
-Los identificadores deben:
+### Course ID
 
-- utilizar minúsculas;
-- utilizar kebab-case;
-- contener letras, números y guiones;
-- no contener espacios;
-- no depender del título visible;
-- permanecer estables después de ser publicados.
+Formato:
 
-Ejemplos válidos:
+```text
+kebab-case
+```
+
+Ejemplo:
 
 ```text
 terraform-aws-essentials
-lab-01
-task-01
-task-01-step-01
-configure-provider
-verify-deployment
 ```
 
-## Course ID
+Regla:
 
-Cada curso debe tener un `course_id` estable.
+```regex
+^[a-z0-9]+(?:-[a-z0-9]+)*$
+```
 
-Ejemplo:
+### Lab ID
+
+Formato:
+
+```text
+lNNN
+```
+
+Ejemplos:
+
+```text
+l001
+l002
+l015
+l120
+```
+
+Regla:
+
+```regex
+^l\d{3}$
+```
+
+### Task ID
+
+Formato:
+
+```text
+tNNN
+```
+
+Ejemplos:
+
+```text
+t001
+t002
+t010
+```
+
+Regla:
+
+```regex
+^t\d{3}$
+```
+
+### Step ID
+
+Formato:
+
+```text
+sNNN
+```
+
+Ejemplos:
+
+```text
+s001
+s002
+s015
+```
+
+Regla:
+
+```regex
+^s\d{3}$
+```
+
+## Identidad vs número y posición
+
+`lab_id` no representa el número visible del Lab.
+
+Un Lab puede conservar su identidad aunque cambie de posición.
+
+Ejemplo inicial:
+
+```text
+posición 1 → l001
+posición 2 → l002
+posición 3 → l003
+posición 4 → l004
+```
+
+Si posteriormente se inserta un nuevo Lab entre los dos primeros:
+
+```text
+posición 1 → l001
+posición 2 → l005
+posición 3 → l002
+posición 4 → l003
+posición 5 → l004
+```
+
+`l002`, `l003` y `l004` conservan su identidad.
+
+El nuevo Lab recibe el siguiente identificador nunca utilizado: `l005`.
+
+## No reutilización de IDs
+
+Un identificador retirado no debe utilizarse para representar otro elemento.
+
+Si:
+
+```text
+l003 → retirado
+```
+
+un Lab completamente nuevo debe recibir el siguiente ID nunca utilizado, por
+ejemplo:
+
+```text
+l005
+```
+
+No debe reutilizar:
+
+```text
+l003
+```
+
+Si `l003` vuelve a publicarse posteriormente, representa el mismo Lab histórico
+y LabControl puede reactivarlo conservando su identidad.
+
+## Metadata del Lab
+
+Un laboratorio integrado con LabControl utiliza:
 
 ```yaml
 course_id: terraform-aws-essentials
+lab_id: l001
+tracking: true
+
+lab_number: 1
+position: 1
 ```
 
-El nombre visible del curso puede cambiar sin modificar este identificador.
-
-## Lab ID
-
-Cada laboratorio debe tener un `lab_id` estable dentro de su curso.
-
-Ejemplo:
-
-```yaml
-lab_id: lab-01
-```
-
-`lab_id` no debe modificarse si el laboratorio cambia de posición.
-
-Por ejemplo, un laboratorio identificado como:
+Las responsabilidades son diferentes:
 
 ```text
-lab-01
+course_id   identidad estable del curso
+lab_id      identidad estable del Lab
+lab_number  número visible actual
+position    orden actual dentro del curso
 ```
 
-puede convertirse visualmente en la Práctica 2 y conservar el mismo
-identificador.
+`lab_number` y `position` pueden cambiar.
+
+`course_id` y `lab_id` no deben cambiar después de publicarse.
+
+## Catálogo activo
+
+La versión actual del catálogo público requiere que los Labs activos tengan:
+
+```text
+lab_number == position
+```
+
+y que sus posiciones formen una secuencia consecutiva:
+
+```text
+1, 2, 3, ... N
+```
+
+Los Labs retirados no forman parte del catálogo público activo, pero LabControl
+conserva su historial.
 
 ## Task ID
 
-Cada tarea que contenga pasos rastreables debe establecer un `task_id`.
+Cada tarea rastreable establece explícitamente su identificador:
+
+```liquid
+{% assign tracking_task_id = "t001" %}
+```
 
 Ejemplo:
 
-```liquid
-{% assign tracking_task_id = "task-01" %}
-```
-
-El identificador se mantiene aunque cambie:
-
 ```text
-Tarea 1
+t001
+├── s001
+└── s002
+
+t002
+├── s003
+└── s004
 ```
 
-por:
+Los `task_id` son únicos dentro del Lab.
 
-```text
-Tarea 2
-```
-
-en la presentación del laboratorio.
-
-Los `task_id` deben ser únicos dentro de cada Lab.
+Cambiar el título o la posición visual de una Task no debe cambiar su ID.
 
 ## Step ID
 
-Cada paso rastreable debe establecer un identificador explícito:
+Cada paso rastreable establece un identificador explícito:
 
 ```liquid
-{% include step_label.html id="task-01-step-01" %}
+{% include step_label.html id="s001" %}
 ```
 
-El HTML generado incluye:
+El número visual mostrado al participante puede cambiar independientemente del
+`step_id`.
 
-```html
-data-task-id="task-01"
-data-step-id="task-01-step-01"
-```
+Cada `step_id` debe ser único dentro del Lab completo.
 
-El número visual mostrado al participante continúa siendo generado por
-`step_label.html`.
+## Asignación de nuevos Task y Step IDs
 
-Por lo tanto:
+Cuando se agrega una Task nueva debe utilizarse el siguiente `tNNN` nunca
+utilizado dentro del Lab.
+
+Cuando se agrega un Step nuevo debe utilizarse el siguiente `sNNN` nunca
+utilizado dentro del Lab.
+
+Ejemplo:
 
 ```text
-Paso 1.
+t001
+├── s001
+└── s002
+
+t002
+├── s003
+└── s004
 ```
 
-no tiene que coincidir permanentemente con:
+Si posteriormente se elimina `s002` y se agrega un Step completamente nuevo,
+no se reutiliza `s002`.
+
+El nuevo Step recibe, por ejemplo:
 
 ```text
-task-01-step-01
+s005
 ```
 
-## Unicidad de Step ID
-
-Para Labs integrados con LabControl, cada `step_id` debe ser único dentro del
-Lab completo, no solamente dentro de su Task.
-
-Ejemplo válido:
-
-```text
-task-01
-├── task-01-step-01
-└── task-01-step-02
-
-task-02
-├── task-02-step-01
-└── task-02-step-02
-```
-
-No debe utilizarse esta estructura:
-
-```text
-task-01
-├── step-01
-└── step-02
-
-task-02
-├── step-01
-└── step-02
-```
-
-porque `step-01` y `step-02` quedarían duplicados dentro del mismo Lab.
-
-Esta regla es necesaria porque:
-
-- `lab-progress.js` almacena progreso local utilizando `step_id`;
-- `lab-tracker.js` identifica Steps mediante `data-step-id`;
-- el manifiesto oficial valida que cada `step_id` sea único;
-- evita colisiones al sincronizar progreso local y remoto.
-
-Un Lab que tenga una sola Task puede utilizar IDs sencillos como:
-
-```text
-step-01
-step-02
-step-03
-```
-
-siempre que permanezcan únicos dentro de ese Lab.
-
-Sin embargo, para Labs con múltiples Tasks se recomienda utilizar el prefijo
-de la Task:
-
-```text
-task-01-step-01
-task-01-step-02
-task-02-step-01
-task-02-step-02
-```
+La misma regla aplica para Tasks.
 
 ## Compatibilidad legacy
 
-Los laboratorios anteriores que utilicen:
+Los laboratorios anteriores pueden utilizar:
 
 ```liquid
 {% include step_label.html %}
 ```
 
-sin un `id` explícito continúan funcionando localmente.
+sin ID explícito.
 
-En ese caso `step_label.html` utiliza como fallback el identificador histórico:
+En esos Labs puede existir progreso local con identificadores históricos como:
 
 ```text
 a:1
@@ -230,40 +316,25 @@ a:2
 a:3
 ```
 
-Estos identificadores legacy son válidos para progreso local, pero un Lab con:
+Estos identificadores se mantienen únicamente por compatibilidad local.
+
+Un Lab con:
 
 ```yaml
 tracking: true
 ```
 
-debe utilizar IDs explícitos y estables.
+debe utilizar IDs oficiales explícitos:
 
-## Metadata del laboratorio
-
-Un laboratorio preparado para tracking utiliza:
-
-```yaml
-course_id: terraform-aws-essentials
-lab_id: lab-01
-tracking: true
-```
-
-El layout publica esta información como atributos HTML:
-
-```html
-<article
-  class="lab"
-  data-course-id="terraform-aws-essentials"
-  data-lab-id="lab-01"
-  data-tracking="true">
+```text
+lNNN
+tNNN
+sNNN
 ```
 
 ## Manifiesto oficial
 
-Los Labs con tracking generan un manifiesto oficial que LabControl utiliza
-para conocer la estructura válida de Tasks y Steps.
-
-El generador es:
+Los Labs con tracking generan un manifiesto oficial mediante:
 
 ```bash
 node scripts/generate_lab_manifest.mjs labs/lab1/lab1.md
@@ -275,7 +346,7 @@ Para procesar todos los Labs compatibles:
 node scripts/generate_lab_manifest.mjs --all
 ```
 
-Los manifiestos se generan localmente en:
+Los manifests locales se generan en:
 
 ```text
 .labcontrol/manifests/<course_id>/<lab_id>.json
@@ -287,12 +358,13 @@ Ejemplo:
 .labcontrol/
 └── manifests/
     └── terraform-aws-essentials/
-        └── lab-01.json
+        ├── l001.json
+        └── l002.json
 ```
 
 `.labcontrol/` es un directorio generado y no se versiona en Git.
 
-## Estructura del manifiesto
+## Estructura del manifest
 
 Ejemplo:
 
@@ -302,16 +374,16 @@ Ejemplo:
   "hash": "sha256:...",
   "tasks": [
     {
-      "taskId": "task-01",
+      "taskId": "t001",
       "title": "Configurar el entorno",
       "position": 1,
       "steps": [
         {
-          "stepId": "task-01-step-01",
+          "stepId": "s001",
           "position": 1
         },
         {
-          "stepId": "task-01-step-02",
+          "stepId": "s002",
           "position": 2
         }
       ]
@@ -320,92 +392,115 @@ Ejemplo:
 }
 ```
 
-El `hash` se calcula de manera determinista utilizando la estructura oficial
-del manifiesto.
+El `hash` se calcula de forma determinista a partir de la estructura oficial.
 
-Si Tasks, Steps, posiciones o títulos rastreados no cambian, ejecutar el
-generador nuevamente produce el mismo hash.
+Si Tasks, Steps, títulos y posiciones rastreadas no cambian, volver a ejecutar
+el generador produce el mismo hash.
 
-## Validaciones del generador
+## Catálogo público del curso
 
-El generador rechaza un Lab cuando detecta, entre otros casos:
+Después de generar los manifests se ejecuta:
 
-- ausencia de `tracking: true`;
+```bash
+node scripts/generate_course_catalog.mjs
+```
+
+y se genera:
+
+```text
+labcontrol/<course_id>/course.json
+```
+
+El catálogo contiene los Labs publicados con tracking y es la fuente que
+LabControl consulta mediante:
+
+```text
+Sincronizar todo
+Sincronizar lab
+```
+
+## Validaciones
+
+Los generadores rechazan, entre otros casos:
+
 - `course_id` inválido;
-- `lab_id` inválido;
-- `task_id` inválido;
-- `task_id` duplicado;
-- `step_label.html` sin `id` explícito;
-- Step sin una Task asociada;
-- `step_id` inválido;
-- `step_id` duplicado dentro del Lab;
-- Task rastreable sin ningún Step.
-
-Los identificadores utilizan kebab-case.
+- `lab_id` distinto de `lNNN`;
+- `task_id` distinto de `tNNN`;
+- `step_id` distinto de `sNNN`;
+- Task ID duplicado;
+- Step ID duplicado dentro del Lab;
+- Step sin Task asociada;
+- Step sin ID explícito;
+- Task rastreable sin Steps;
+- `lab_number` duplicado;
+- `position` duplicada;
+- huecos en la numeración activa;
+- `lab_number` y `position` desalineados;
+- falta del manifest oficial.
 
 ## Reglas de estabilidad
 
-Después de publicar un Lab:
+Después de publicar un elemento:
 
-1. No reutilizar un ID eliminado para representar otro elemento.
-2. No renumerar IDs porque cambie la posición visual.
-3. No cambiar un ID solamente porque cambió el título.
-4. No utilizar texto visible como identificador persistente.
+1. No cambiar su identificador porque cambie el título.
+2. No cambiar su identificador porque cambie su posición.
+3. No reutilizar un ID retirado para representar otro elemento.
+4. No derivar identidad de texto visible.
 5. Los nuevos elementos reciben IDs nuevos.
-6. Cada `task_id` debe ser único dentro del Lab.
-7. Cada `step_id` debe ser único dentro del Lab.
-8. Los IDs legacy `a:N`, `b:N`, `c:N` y `d:N` se mantienen únicamente por compatibilidad local.
+6. Cada `task_id` es único dentro del Lab.
+7. Cada `step_id` es único dentro del Lab.
+8. Un Lab retirado que vuelve conserva su `lab_id`.
+9. Los IDs legacy quedan únicamente para compatibilidad local.
 
 ## Responsabilidades de Jekyll
 
-Jekyll proporciona:
+Jekyll es la fuente de verdad del contenido y proporciona:
 
 ```text
 course_id
 lab_id
 task_id
 step_id
+lab_number
+position
+manifest
+course.json
 ```
 
-También genera el manifiesto oficial de cada Lab rastreable.
+También determina qué Labs están actualmente publicados.
 
 ## Responsabilidades de LabControl
 
-LabControl relaciona los identificadores Jekyll con:
+LabControl:
 
-```text
-Course
-Lab
-CourseSession
-Enrollment
-LabProgress
-StepProgress
-```
-
-LabControl también:
-
-- almacena el manifiesto oficial;
-- valida `task_id` y `step_id`;
-- calcula el progreso con el total oficial de Steps;
-- determina cuándo un Lab está `READY_FOR_REVIEW`;
-- registra la aprobación del instructor.
+- conserva la identidad histórica de cada Lab;
+- descarga el catálogo Jekyll;
+- crea Labs nuevos;
+- actualiza metadata;
+- reordena Labs;
+- retira Labs ausentes del catálogo;
+- reactiva Labs que vuelven a aparecer;
+- conserva progreso histórico;
+- almacena manifests;
+- valida Tasks y Steps;
+- registra `LabProgress` y `StepProgress`.
 
 ## Flujo de integración
 
 ```text
-Jekyll labN.md
-    ↓
+labN.md
+   ↓
 generate_lab_manifest.mjs
-    ↓
-manifest JSON
-    ↓
+   ↓
+.labcontrol/manifests/
+   ↓
+generate_course_catalog.mjs
+   ↓
+labcontrol/<course_id>/course.json
+   ↓
+GitHub Pages
+   ↓
 LabControl
-    ↓
-validación de Task/Step
-    ↓
-StepProgress
-    ↓
-READY_FOR_REVIEW
-    ↓
-APPROVED
+   ↓
+Sincronizar todo / Sincronizar lab
 ```

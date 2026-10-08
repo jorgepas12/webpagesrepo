@@ -1,0 +1,7 @@
+# Registro persistente de identidades LabControl.
+# No eliminar IDs históricos ni reducir next_lab_id.
+
+terraform-aws-essentials:
+  next_lab_id: 2
+  used_lab_ids:
+    - l001
