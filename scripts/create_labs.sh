@@ -30,6 +30,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MANIFEST_GENERATOR="${SCRIPT_DIR}/generate_lab_manifest.mjs"
+ID_REGISTRY="${SCRIPT_DIR}/lab_id_registry.mjs"
+NORMALIZER="${SCRIPT_DIR}/normalize_course_labs.mjs"
+CATALOG_GENERATOR="${SCRIPT_DIR}/generate_course_catalog.mjs"
 
 ROOT_DIR="${ROOT_DIR:-labs}"
 TOTAL_LABS="${1:-}"
@@ -71,6 +74,24 @@ if [[ -n "${COURSE_ID}" ]]; then
     echo "  ${MANIFEST_GENERATOR}"
     exit 1
   fi
+
+  if [[ ! -f "${ID_REGISTRY}" ]]; then
+    echo "Error: no se encontró el registro de identidades:"
+    echo "  ${ID_REGISTRY}"
+    exit 1
+  fi
+
+  if [[ ! -f "${NORMALIZER}" ]]; then
+    echo "Error: no se encontró el normalizador:"
+    echo "  ${NORMALIZER}"
+    exit 1
+  fi
+
+  if [[ ! -f "${CATALOG_GENERATOR}" ]]; then
+    echo "Error: no se encontró el generador de catálogo:"
+    echo "  ${CATALOG_GENERATOR}"
+    exit 1
+  fi
 fi
 
 mkdir -p "${ROOT_DIR}"
@@ -89,10 +110,47 @@ fi
 
 echo
 
+if [[ "${TRACKING_ENABLED}" == "true" ]]; then
+  echo "Registrando identidades existentes del curso..."
+
+  shopt -s nullglob
+
+  for existing_file in "${ROOT_DIR}"/lab*/lab*.md; do
+    existing_course_id="$(
+      sed -n 's/^course_id:[[:space:]]*//p' "${existing_file}" |
+        head -n 1 |
+        tr -d '\r'
+    )"
+
+    existing_lab_id="$(
+      sed -n 's/^lab_id:[[:space:]]*//p' "${existing_file}" |
+        head -n 1 |
+        tr -d '\r'
+    )"
+
+    if [[
+      "${existing_course_id}" == "${COURSE_ID}" &&
+      "${existing_lab_id}" =~ ^l[0-9]{3}$
+    ]]; then
+      node "${ID_REGISTRY}"         register         "${COURSE_ID}"         "${existing_lab_id}"         >/dev/null
+    fi
+  done
+
+  shopt -u nullglob
+fi
+
 for i in $(seq 1 "${TOTAL_LABS}"); do
   LAB_DIR="${ROOT_DIR}/lab${i}"
   IMG_DIR="${LAB_DIR}/img"
   MD_FILE="${LAB_DIR}/lab${i}.md"
+
+  echo "Creando estructura para ${LAB_DIR}..."
+  mkdir -p "${IMG_DIR}"
+
+  if [[ -f "${MD_FILE}" ]]; then
+    echo "  -> ${MD_FILE} ya existe, se deja sin cambios."
+    continue
+  fi
 
   if [[ "${i}" -eq 1 ]]; then
     PREV_PATH="/"
@@ -108,9 +166,11 @@ for i in $(seq 1 "${TOTAL_LABS}"); do
     NEXT_PATH="/lab${NEXT_NUM}/lab${NEXT_NUM}/"
   fi
 
-  LAB_TRACKING_ID=$(printf "l%03d" "${i}")
-
   if [[ "${TRACKING_ENABLED}" == "true" ]]; then
+    LAB_TRACKING_ID="$(
+      node "${ID_REGISTRY}" next "${COURSE_ID}"
+    )"
+
     printf -v TRACKING_FRONT_MATTER \
       'course_id: %s\nlab_id: %s\ntracking: true\n\n' \
       "${COURSE_ID}" \
@@ -149,14 +209,6 @@ for i in $(seq 1 "${TOTAL_LABS}"); do
     TASK3_STEP1='{% include step_label.html %}'
     TASK3_STEP2='{% include step_label.html %}'
     TASK3_STEP3='{% include step_label.html %}'
-  fi
-
-  echo "Creando estructura para ${LAB_DIR}..."
-  mkdir -p "${IMG_DIR}"
-
-  if [[ -f "${MD_FILE}" ]]; then
-    echo "  -> ${MD_FILE} ya existe, se deja sin cambios."
-    continue
   fi
 
   cat > "${MD_FILE}" <<EOF
@@ -864,5 +916,18 @@ echo
 echo "Listo. Se generaron las prácticas en ${ROOT_DIR}/"
 
 if [[ "${TRACKING_ENABLED}" == "true" ]]; then
+  echo
+  echo "Normalizando estructura y navegación..."
+
+  ROOT_DIR="${ROOT_DIR}"     node "${NORMALIZER}"     "${COURSE_ID}"
+
+  echo
+  echo "Generando catálogo público LabControl..."
+
+  ROOT_DIR="${ROOT_DIR}"     node "${CATALOG_GENERATOR}"
+
+  echo
   echo "Los manifiestos LabControl se generaron en .labcontrol/manifests/."
+  echo "Las identidades estables quedaron registradas en _data/labcontrol-identities.yml."
+  echo "El catálogo público quedó generado en labcontrol/${COURSE_ID}/course.json."
 fi

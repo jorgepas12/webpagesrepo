@@ -347,7 +347,8 @@ async function main() {
   const labsDir =
     resolve(
       rootDir,
-      'labs',
+      process.env.ROOT_DIR ??
+        'labs',
     );
 
   const files =
