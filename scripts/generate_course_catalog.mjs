@@ -16,6 +16,14 @@ import {
 
 import process from 'node:process';
 
+import {
+  spawnSync,
+} from 'node:child_process';
+
+import {
+  createHash,
+} from 'node:crypto';
+
 const CATALOG_VERSION = 1;
 
 const COURSE_ID_PATTERN =
@@ -33,6 +41,101 @@ function fail(message) {
   );
 
   process.exitCode = 1;
+}
+
+function sha256(value) {
+  return `sha256:${createHash(
+    'sha256',
+  )
+    .update(
+      value,
+      'utf8',
+    )
+    .digest(
+      'hex',
+    )}`;
+}
+
+function normalizeCommitSha(
+  value,
+) {
+  const normalized =
+    String(
+      value ?? '',
+    )
+      .trim()
+      .toLowerCase();
+
+  return /^[a-f0-9]{40,64}$/.test(
+    normalized,
+  )
+    ? normalized
+    : null;
+}
+
+function resolveSourceCommitSha(
+  rootDir,
+) {
+  const ciSha =
+    normalizeCommitSha(
+      process.env.SOURCE_COMMIT_SHA ??
+        process.env.GITHUB_SHA,
+    );
+
+  if (
+    ciSha
+  ) {
+    return ciSha;
+  }
+
+  const status =
+    spawnSync(
+      'git',
+      [
+        'status',
+        '--porcelain',
+      ],
+      {
+        cwd:
+          rootDir,
+        encoding:
+          'utf8',
+      },
+    );
+
+  if (
+    status.status !==
+      0 ||
+    status.stdout.trim()
+  ) {
+    return null;
+  }
+
+  const revision =
+    spawnSync(
+      'git',
+      [
+        'rev-parse',
+        'HEAD',
+      ],
+      {
+        cwd:
+          rootDir,
+        encoding:
+          'utf8',
+      },
+    );
+
+  if (
+    revision.status !==
+      0
+  ) {
+    return null;
+  }
+
+  return normalizeCommitSha(
+    revision.stdout,
+  );
 }
 
 function normalizeLineEndings(value) {
@@ -234,6 +337,11 @@ async function loadLabMetadata(
       'utf8',
     );
 
+  const normalizedSource =
+    normalizeLineEndings(
+      source,
+    );
+
   const frontMatter =
     parseSimpleFrontMatter(
       source,
@@ -336,6 +444,26 @@ async function loadLabMetadata(
         ),
       contentPath,
       manifest,
+      sourcePath:
+        labFile
+          .replace(
+            rootDir,
+            '',
+          )
+          .replace(
+            /^[\\/]+/,
+            '',
+          )
+          .replaceAll(
+            '\\',
+            '/',
+          ),
+      contentSnapshot:
+        normalizedSource,
+      contentHash:
+        sha256(
+          normalizedSource,
+        ),
     },
   };
 }
@@ -343,6 +471,11 @@ async function loadLabMetadata(
 async function main() {
   const rootDir =
     process.cwd();
+
+  const sourceCommitSha =
+    resolveSourceCommitSha(
+      rootDir,
+    );
 
   const labsDir =
     resolve(
@@ -558,18 +691,98 @@ async function main() {
       );
     }
 
-    const catalog = {
-      version:
-        CATALOG_VERSION,
-      courseId,
-      labs,
-    };
-
     const outputDir =
       join(
         publicRoot,
         courseId,
       );
+
+    const contentOutputDir =
+      join(
+        outputDir,
+        'content',
+      );
+
+    await mkdir(
+      contentOutputDir,
+      {
+        recursive:
+          true,
+      },
+    );
+
+    const catalogLabs = [];
+
+    for (
+      const lab
+      of labs
+    ) {
+      const contentFileName =
+        `${lab.labId}.json`;
+
+      const contentRelativePath =
+        `/labcontrol/${courseId}/content/${contentFileName}`;
+
+      const contentArtifact = {
+        version:
+          1,
+        labId:
+          lab.labId,
+        format:
+          'markdown',
+        sourcePath:
+          lab.sourcePath,
+        hash:
+          lab.contentHash,
+        markdown:
+          lab.contentSnapshot,
+      };
+
+      await writeFile(
+        join(
+          contentOutputDir,
+          contentFileName,
+        ),
+        `${JSON.stringify(
+          contentArtifact,
+          null,
+          2,
+        )}\n`,
+        'utf8',
+      );
+
+      catalogLabs.push({
+        labId:
+          lab.labId,
+        number:
+          lab.number,
+        position:
+          lab.position,
+        name:
+          lab.name,
+        durationMinutes:
+          lab.durationMinutes,
+        contentPath:
+          lab.contentPath,
+        content: {
+          path:
+            contentRelativePath,
+          hash:
+            lab.contentHash,
+        },
+        manifest:
+          lab.manifest,
+      });
+    }
+
+    const catalog = {
+      version:
+        CATALOG_VERSION,
+      courseId,
+      sourceCommitSha,
+      labs:
+        catalogLabs,
+    };
 
     await mkdir(
       outputDir,

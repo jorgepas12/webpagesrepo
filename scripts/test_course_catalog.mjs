@@ -184,6 +184,7 @@ async function writeManifest(
 
 function runGenerator(
   root,
+  env = {},
 ) {
   return spawnSync(
     process.execPath,
@@ -195,6 +196,10 @@ function runGenerator(
         root,
       encoding:
         'utf8',
+      env: {
+        ...process.env,
+        ...env,
+      },
     },
   );
 }
@@ -267,9 +272,16 @@ await test(
         'l002',
       );
 
+      const sourceCommitSha =
+        '0123456789abcdef0123456789abcdef01234567';
+
       const result =
         runGenerator(
           root,
+          {
+            SOURCE_COMMIT_SHA:
+              sourceCommitSha,
+          },
         );
 
       assert(
@@ -302,6 +314,12 @@ await test(
         catalog.courseId ===
           'terraform-aws-essentials',
         'courseId incorrecto.',
+      );
+
+      assert(
+        catalog.sourceCommitSha ===
+          sourceCommitSha,
+        'sourceCommitSha incorrecto.',
       );
 
       assert(
@@ -345,6 +363,77 @@ await test(
           1,
         'El manifest no fue incorporado.',
       );
+
+      assert(
+        catalog.labs[0]
+          .content
+          .path ===
+          '/labcontrol/terraform-aws-essentials/content/l001.json',
+        'La ruta del snapshot de contenido es incorrecta.',
+      );
+
+      assert(
+        /^sha256:[a-f0-9]{64}$/.test(
+          catalog.labs[0]
+            .content
+            .hash,
+        ),
+        'El hash de contenido es inválido.',
+      );
+
+      const contentArtifact =
+        JSON.parse(
+          await readFile(
+            join(
+              root,
+              'labcontrol',
+              'terraform-aws-essentials',
+              'content',
+              'l001.json',
+            ),
+            'utf8',
+          ),
+        );
+
+      assert(
+        contentArtifact.version ===
+          1,
+        'La versión del snapshot es incorrecta.',
+      );
+
+      assert(
+        contentArtifact.labId ===
+          'l001',
+        'El labId del snapshot es incorrecto.',
+      );
+
+      assert(
+        contentArtifact.format ===
+          'markdown',
+        'El formato del snapshot debe ser markdown.',
+      );
+
+      assert(
+        contentArtifact.sourcePath ===
+          'labs/lab1/lab1.md',
+        'sourcePath del snapshot es incorrecto.',
+      );
+
+      assert(
+        contentArtifact.hash ===
+          catalog.labs[0]
+            .content
+            .hash,
+        'El hash del snapshot no coincide con el catálogo.',
+      );
+
+      assert(
+        contentArtifact.markdown.includes(
+          '## Tarea 1. Test',
+        ),
+        'El Markdown fuente no fue conservado.',
+      );
+
     } finally {
       await rm(
         root,
