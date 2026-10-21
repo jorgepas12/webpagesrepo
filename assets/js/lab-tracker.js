@@ -23,12 +23,14 @@
   const QUEUE_PREFIX =
     "netec:trackingQueue:";
 
-  const LOCAL_PROGRESS_PREFIX =
-    "netec:stepProgress:";
-
   const QUEUE_VERSION = 1;
 
-  let syncingFromServer = false;
+  const PROGRESS_CHANGE_EVENT =
+    "lab-progress-change";
+
+  const PROGRESS_APPLY_EVENT =
+    "lab-progress-apply";
+
   let flushingQueue = false;
 
   /* ---------------------------------------------------------
@@ -332,42 +334,6 @@
   }
 
   /* ---------------------------------------------------------
-     Estado local utilizado por lab-progress.js
-     --------------------------------------------------------- */
-
-  function getLocalProgressKey(
-    labId
-  ) {
-    return (
-      `${LOCAL_PROGRESS_PREFIX}` +
-      labId
-    );
-  }
-
-  function saveLocalProgress(
-    labId,
-    completed
-  ) {
-    localStorage.setItem(
-      getLocalProgressKey(
-        labId
-      ),
-      JSON.stringify({
-        version:
-          1,
-        completed:
-          Array.from(
-            new Set(
-              completed
-            )
-          ),
-        updatedAt:
-          Date.now()
-      })
-    );
-  }
-
-  /* ---------------------------------------------------------
      API
      --------------------------------------------------------- */
 
@@ -519,7 +485,7 @@
       flushingQueue ||
       !navigator.onLine
     ) {
-      return;
+      return false;
     }
 
     const courseId =
@@ -537,37 +503,29 @@
       !labId ||
       !getAccessToken()
     ) {
-      return;
-    }
-
-    const queue =
-      loadQueue(
-        courseId,
-        labId
-      );
-
-    if (
-      queue.items.length ===
-      0
-    ) {
-      return;
+      return false;
     }
 
     flushingQueue =
       true;
 
     try {
-      const remaining =
-        [];
+      while (true) {
+        const queue =
+          loadQueue(
+            courseId,
+            labId
+          );
 
-      for (
-        let index = 0;
-        index <
-        queue.items.length;
-        index += 1
-      ) {
+        if (
+          queue.items.length ===
+          0
+        ) {
+          return true;
+        }
+
         const item =
-          queue.items[index];
+          queue.items[0];
 
         const sent =
           await sendStep(
@@ -576,24 +534,42 @@
           );
 
         if (!sent) {
-          remaining.push(
-            ...queue.items.slice(
-              index
-            )
+          return false;
+        }
+
+        /*
+         * Recargar la cola después del await.
+         *
+         * El usuario pudo cambiar el mismo paso mientras
+         * el PATCH estaba en vuelo. Solo eliminamos el item
+         * si sigue representando exactamente el estado que
+         * acabamos de confirmar en el servidor.
+         */
+        const latestQueue =
+          loadQueue(
+            courseId,
+            labId
           );
 
-          break;
-        }
+        latestQueue.items =
+          latestQueue.items.filter(
+            queuedItem =>
+              !(
+                queuedItem.taskId ===
+                  item.taskId &&
+                queuedItem.stepId ===
+                  item.stepId &&
+                queuedItem.isCompleted ===
+                  item.isCompleted
+              )
+          );
+
+        saveQueue(
+          courseId,
+          labId,
+          latestQueue
+        );
       }
-
-      queue.items =
-        remaining;
-
-      saveQueue(
-        courseId,
-        labId,
-        queue
-      );
     } finally {
       flushingQueue =
         false;
@@ -601,278 +577,32 @@
   }
 
   /* ---------------------------------------------------------
-     Aplicar estado visual recibido del servidor
+     Aplicar estado confirmado por LabControl
      --------------------------------------------------------- */
-
-  function paintStep(
-    step,
-    completed
-  ) {
-    const li =
-      step.closest(
-        "li"
-      );
-
-    step.classList.toggle(
-      "step-label-completed",
-      completed
-    );
-
-    step.setAttribute(
-      "aria-pressed",
-      completed
-        ? "true"
-        : "false"
-    );
-
-    step.setAttribute(
-      "title",
-      completed
-        ? "Marcar este paso como pendiente"
-        : "Marcar este paso como completado"
-    );
-
-    if (li) {
-      li.classList.toggle(
-        "step-completed",
-        completed
-      );
-
-      li.classList.remove(
-        "step-current",
-        "step-pending"
-      );
-    }
-  }
-
-  function updatePanel(
-    steps,
-    completedIds
-  ) {
-    const panel =
-      document.querySelector(
-        ".lab-progress"
-      );
-
-    if (!panel) {
-      return;
-    }
-
-    const total =
-      steps.length;
-
-    const completedCount =
-      steps.filter(
-        step =>
-          completedIds.includes(
-            getStepId(
-              step
-            )
-          )
-      ).length;
-
-    const percent =
-      total === 0
-        ? 0
-        : Math.round(
-            (
-              completedCount /
-              total
-            ) *
-              100
-          );
-
-    const completedEl =
-      panel.querySelector(
-        "[data-progress-completed]"
-      );
-
-    const totalEl =
-      panel.querySelector(
-        "[data-progress-total]"
-      );
-
-    const percentEl =
-      panel.querySelector(
-        "[data-progress-percent]"
-      );
-
-    const fillEl =
-      panel.querySelector(
-        "[data-progress-fill]"
-      );
-
-    const progressBar =
-      panel.querySelector(
-        ".lab-progress-bar"
-      );
-
-    const continueBtn =
-      panel.querySelector(
-        "[data-progress-continue]"
-      );
-
-    if (completedEl) {
-      completedEl.textContent =
-        String(
-          completedCount
-        );
-    }
-
-    if (totalEl) {
-      totalEl.textContent =
-        String(
-          total
-        );
-    }
-
-    if (percentEl) {
-      percentEl.textContent =
-        `${percent}%`;
-    }
-
-    if (fillEl) {
-      if (
-        window.matchMedia(
-          "(min-width: 1181px)"
-        ).matches
-      ) {
-        fillEl.style.width =
-          "100%";
-
-        fillEl.style.height =
-          `${percent}%`;
-      } else {
-        fillEl.style.height =
-          "100%";
-
-        fillEl.style.width =
-          `${percent}%`;
-      }
-    }
-
-    if (progressBar) {
-      progressBar.setAttribute(
-        "aria-valuenow",
-        String(
-          percent
-        )
-      );
-    }
-
-    if (continueBtn) {
-      if (
-        total > 0 &&
-        completedCount ===
-          total
-      ) {
-        continueBtn.textContent =
-          "✓";
-
-        continueBtn.disabled =
-          true;
-
-        continueBtn.title =
-          "Práctica completada";
-
-        continueBtn.setAttribute(
-          "aria-label",
-          "Práctica completada"
-        );
-      } else {
-        continueBtn.textContent =
-          "→";
-
-        continueBtn.disabled =
-          false;
-
-        continueBtn.title =
-          "Continuar";
-
-        continueBtn.setAttribute(
-          "aria-label",
-          "Continuar al siguiente paso pendiente"
-        );
-      }
-    }
-
-    panel.classList.toggle(
-      "is-complete",
-      total > 0 &&
-        completedCount ===
-          total
-    );
-
-    let firstPendingFound =
-      false;
-
-    steps.forEach(
-      step => {
-        const stepId =
-          getStepId(
-            step
-          );
-
-        const li =
-          step.closest(
-            "li"
-          );
-
-        if (
-          !stepId ||
-          !li
-        ) {
-          return;
-        }
-
-        li.classList.remove(
-          "step-completed",
-          "step-current",
-          "step-pending"
-        );
-
-        if (
-          completedIds.includes(
-            stepId
-          )
-        ) {
-          li.classList.add(
-            "step-completed"
-          );
-
-          return;
-        }
-
-        if (
-          !firstPendingFound
-        ) {
-          li.classList.add(
-            "step-current"
-          );
-
-          firstPendingFound =
-            true;
-
-          return;
-        }
-
-        li.classList.add(
-          "step-pending"
-        );
-      }
-    );
-  }
 
   function applyServerState(
     root,
-    steps,
     serverLab
   ) {
-    if (!serverLab) {
+    if (
+      !serverLab ||
+      !Array.isArray(
+        serverLab.steps
+      )
+    ) {
       return;
     }
 
-    const completedIds =
+    const labId =
+      getLabId(
+        root
+      );
+
+    if (!labId) {
+      return;
+    }
+
+    const completedStepIds =
       serverLab.steps
         .filter(
           item =>
@@ -881,52 +611,22 @@
         .map(
           item =>
             item.stepId
+        )
+        .filter(
+          Boolean
         );
 
-    syncingFromServer =
-      true;
-
-    try {
-      steps.forEach(
-        step => {
-          const stepId =
-            getStepId(
-              step
-            );
-
-          if (!stepId) {
-            return;
+    document.dispatchEvent(
+      new CustomEvent(
+        PROGRESS_APPLY_EVENT,
+        {
+          detail: {
+            labId,
+            completedStepIds
           }
-
-          paintStep(
-            step,
-            completedIds.includes(
-              stepId
-            )
-          );
         }
-      );
-
-      saveLocalProgress(
-        getLabId(
-          root
-        ),
-        completedIds
-      );
-
-      updatePanel(
-        steps,
-        completedIds
-      );
-    } finally {
-      window.setTimeout(
-        () => {
-          syncingFromServer =
-            false;
-        },
-        0
-      );
-    }
+      )
+    );
   }
 
   /* ---------------------------------------------------------
@@ -934,8 +634,7 @@
      --------------------------------------------------------- */
 
   async function pullServerProgress(
-    root,
-    steps
+    root
   ) {
     const result =
       await apiRequest(
@@ -986,129 +685,107 @@
 
     applyServerState(
       root,
-      steps,
       serverLab
     );
   }
 
   /* ---------------------------------------------------------
-     Observar cambios realizados por lab-progress.js
+     Recibir cambios explícitos desde lab-progress.js
      --------------------------------------------------------- */
 
   function observeProgressChanges(
     root,
     steps
   ) {
-    const observer =
-      new MutationObserver(
-        mutations => {
-          if (
-            syncingFromServer
-          ) {
-            return;
-          }
-
-          mutations.forEach(
-            mutation => {
-              if (
-                mutation.type !==
-                  "attributes" ||
-                mutation.attributeName !==
-                  "aria-pressed"
-              ) {
-                return;
-              }
-
-              const step =
-                mutation.target;
-
-              const currentValue =
-                step.getAttribute(
-                  "aria-pressed"
-                );
-
-              /*
-               * lab-progress.js puede volver a establecer
-               * aria-pressed con el mismo valor cuando
-               * actualiza varios pasos secuencialmente.
-               *
-               * Esos cambios no representan un cambio
-               * real de progreso y no deben reenviarse.
-               */
-              if (
-                mutation.oldValue ===
-                currentValue
-              ) {
-                return;
-              }
-
-              const taskId =
-                getTaskId(
-                  step
-                );
-
-              const stepId =
-                getStepId(
-                  step
-                );
-
-              if (
-                !taskId ||
-                !stepId
-              ) {
-                return;
-              }
-
-              const isCompleted =
-                currentValue ===
-                "true";
-
-              const courseId =
-                getCourseId(
-                  root
-                );
-
-              const labId =
-                getLabId(
-                  root
-                );
-
-              if (
-                !courseId ||
-                !labId
-              ) {
-                return;
-              }
-
-              enqueueChange(
-                courseId,
-                labId,
-                taskId,
+    const validSteps =
+      new Map(
+        steps
+          .map(step => [
+            getStepId(
+              step
+            ),
+            getTaskId(
+              step
+            )
+          ])
+          .filter(
+            (
+              [
                 stepId,
-                isCompleted
-              );
-            }
-          );
-
-          void flushQueue(
-            root
-          );
-        }
+                taskId
+              ]
+            ) =>
+              stepId &&
+              taskId
+          )
       );
 
-    steps.forEach(
-      step => {
-        observer.observe(
-          step,
-          {
-            attributes:
-              true,
-            attributeOldValue:
-              true,
-            attributeFilter: [
-              "aria-pressed"
-            ]
+    document.addEventListener(
+      PROGRESS_CHANGE_EVENT,
+      event => {
+        const detail =
+          event.detail;
+
+        const courseId =
+          getCourseId(
+            root
+          );
+
+        const labId =
+          getLabId(
+            root
+          );
+
+        if (
+          !detail ||
+          !courseId ||
+          !labId ||
+          detail.labId !==
+            labId ||
+          !Array.isArray(
+            detail.changes
+          )
+        ) {
+          return;
+        }
+
+        detail.changes.forEach(
+          change => {
+            if (
+              !change ||
+              !change.stepId ||
+              !change.taskId ||
+              typeof change.isCompleted !==
+                "boolean"
+            ) {
+              return;
+            }
+
+            /*
+             * Solo aceptamos pares task/step que realmente
+             * existen en el Lab renderizado.
+             */
+            if (
+              validSteps.get(
+                change.stepId
+              ) !==
+              change.taskId
+            ) {
+              return;
+            }
+
+            enqueueChange(
+              courseId,
+              labId,
+              change.taskId,
+              change.stepId,
+              change.isCompleted
+            );
           }
+        );
+
+        void flushQueue(
+          root
         );
       }
     );
@@ -1195,25 +872,43 @@
      * Primero enviamos cambios locales que
      * hubieran quedado pendientes.
      */
-    await flushQueue(
-      root
-    );
+    const queueFlushed =
+      await flushQueue(
+        root
+      );
 
     /*
-     * Después recuperamos el estado confirmado
-     * por LabControl.
+     * Resolución de conflictos:
+     *
+     * 1. Los cambios locales pendientes se envían primero.
+     * 2. Solo si la cola queda vacía recuperamos el estado
+     *    confirmado por LabControl.
+     * 3. Si la red falla, conservamos el estado local y
+     *    dejamos la cola pendiente para el próximo retry.
      */
-    await pullServerProgress(
-      root,
-      steps
-    );
+    if (queueFlushed) {
+      await pullServerProgress(
+        root
+      );
+    }
 
     window.addEventListener(
       "online",
       () => {
-        void flushQueue(
-          root
-        );
+        void (
+          async () => {
+            const queueFlushed =
+              await flushQueue(
+                root
+              );
+
+            if (queueFlushed) {
+              await pullServerProgress(
+                root
+              );
+            }
+          }
+        )();
       }
     );
 
@@ -1228,9 +923,20 @@
           document.visibilityState ===
           "visible"
         ) {
-          void flushQueue(
-            root
-          );
+          void (
+            async () => {
+              const queueFlushed =
+                await flushQueue(
+                  root
+                );
+
+              if (queueFlushed) {
+                await pullServerProgress(
+                  root
+                );
+              }
+            }
+          )();
         }
       }
     );
