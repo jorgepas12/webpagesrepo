@@ -16,8 +16,13 @@ import {
 } from 'node:path';
 
 import {
+  spawn,
   spawnSync,
 } from 'node:child_process';
+
+import {
+  createServer,
+} from 'node:http';
 
 import process from 'node:process';
 
@@ -72,6 +77,15 @@ function run(
   args,
   env = {},
 ) {
+  const {
+    LABCONTROL_API_URL:
+      _labControlApiUrl,
+    LABCONTROL_AUTHORING_SYNC_TOKEN:
+      _labControlAuthoringToken,
+    ...baseEnv
+  } =
+    process.env;
+
   const result =
     spawnSync(
       command,
@@ -82,7 +96,7 @@ function run(
         encoding:
           'utf8',
         env: {
-          ...process.env,
+          ...baseEnv,
           ...env,
         },
       },
@@ -124,6 +138,224 @@ function runCreate(
         'labs',
     },
   );
+}
+
+async function runCreateWithServer(
+  root,
+  count,
+  courseId,
+) {
+  let requestBody =
+    '';
+
+  let requestMethod =
+    null;
+
+  let requestUrl =
+    null;
+
+  const server =
+    createServer(
+      (
+        request,
+        response,
+      ) => {
+        requestMethod =
+          request.method;
+
+        requestUrl =
+          request.url;
+
+        request.setEncoding(
+          'utf8',
+        );
+
+        request.on(
+          'data',
+          chunk => {
+            requestBody +=
+              chunk;
+          },
+        );
+
+        request.on(
+          'end',
+          () => {
+            response.writeHead(
+              200,
+              {
+                'Content-Type':
+                  'application/json',
+              },
+            );
+
+            response.end(
+              JSON.stringify({
+                synchronized:
+                  true,
+                catalog: {
+                  created:
+                    1,
+                  updated:
+                    0,
+                  manifestSynced:
+                    1,
+                  deactivated:
+                    0,
+                  unchanged:
+                    0,
+                },
+              }),
+            );
+          },
+        );
+      },
+    );
+
+  await new Promise(
+    (
+      resolveListen,
+      rejectListen,
+    ) => {
+      server.once(
+        'error',
+        rejectListen,
+      );
+
+      server.listen(
+        0,
+        '127.0.0.1',
+        resolveListen,
+      );
+    },
+  );
+
+  const address =
+    server.address();
+
+  if (
+    !address ||
+    typeof address ===
+      'string'
+  ) {
+    server.close();
+
+    throw new Error(
+      'No se pudo obtener el puerto del servidor de prueba.',
+    );
+  }
+
+  try {
+    const result =
+      await new Promise(
+        (
+          resolveProcess,
+          rejectProcess,
+        ) => {
+          const child =
+            spawn(
+              'bash',
+              [
+                CREATE_SCRIPT,
+                String(count),
+                courseId,
+              ],
+              {
+                cwd:
+                  root,
+                env: {
+                  ...process.env,
+                  ROOT_DIR:
+                    'labs',
+                  LABCONTROL_API_URL:
+                    `http://127.0.0.1:${address.port}`,
+                  LABCONTROL_AUTHORING_SYNC_TOKEN:
+                    'lcat_test-authoring-token',
+                },
+              },
+            );
+
+          let stdout =
+            '';
+
+          let stderr =
+            '';
+
+          child.stdout.setEncoding(
+            'utf8',
+          );
+
+          child.stderr.setEncoding(
+            'utf8',
+          );
+
+          child.stdout.on(
+            'data',
+            chunk => {
+              stdout +=
+                chunk;
+            },
+          );
+
+          child.stderr.on(
+            'data',
+            chunk => {
+              stderr +=
+                chunk;
+            },
+          );
+
+          child.once(
+            'error',
+            rejectProcess,
+          );
+
+          child.once(
+            'close',
+            code => {
+              resolveProcess({
+                status:
+                  code,
+                stdout,
+                stderr,
+              });
+            },
+          );
+        },
+      );
+
+    if (
+      result.status !==
+        0
+    ) {
+      throw new Error(
+        [
+          'create_labs.sh falló durante el test HTTP.',
+          result.stdout,
+          result.stderr,
+        ]
+          .filter(Boolean)
+          .join(
+            '\n',
+          ),
+      );
+    }
+
+    return {
+      result,
+      requestBody,
+      requestMethod,
+      requestUrl,
+    };
+  } finally {
+    await new Promise(
+      resolveClose => {
+        server.close(
+          resolveClose,
+        );
+      },
+    );
+  }
 }
 
 function runInsert(
@@ -295,6 +527,212 @@ await test(
           .join(',') ===
           'l001,l002,l003',
         'El catálogo inicial no conserva el orden esperado.',
+      );
+    } finally {
+      await rm(
+        root,
+        {
+          recursive:
+            true,
+          force:
+            true,
+        },
+      );
+    }
+  },
+);
+
+await test(
+  'create_labs soporta authoring sync --dry-run sin hacer HTTP',
+  async () => {
+    const root =
+      await createRoot();
+
+    try {
+      const result =
+        run(
+          root,
+          'bash',
+          [
+            CREATE_SCRIPT,
+            '1',
+            'curso-demo',
+            '--dry-run',
+          ],
+          {
+            ROOT_DIR:
+              'labs',
+          },
+        );
+
+      assert(
+        result.stdout.includes(
+          'LabControl authoring sync: DRY RUN',
+        ),
+        'create_labs.sh debía ejecutar el dry-run de LabControl.',
+      );
+
+      assert(
+        result.stdout.includes(
+          'Course ID: curso-demo',
+        ),
+        'El dry-run debía identificar curso-demo.',
+      );
+
+      assert(
+        result.stdout.includes(
+          'Labs: 1',
+        ),
+        'El dry-run debía detectar 1 Lab.',
+      );
+
+      assert(
+        result.stdout.includes(
+          'Snapshots: 1',
+        ),
+        'El dry-run debía detectar 1 snapshot.',
+      );
+
+      assert(
+        result.stdout.includes(
+          'HTTP PUT: omitido por --dry-run',
+        ),
+        'El dry-run no debía ejecutar el PUT.',
+      );
+    } finally {
+      await rm(
+        root,
+        {
+          recursive:
+            true,
+          force:
+            true,
+        },
+      );
+    }
+  },
+);
+
+await test(
+  'create_labs sincroniza automáticamente cuando LabControl está configurado',
+  async () => {
+    const root =
+      await createRoot();
+
+    try {
+      const {
+        result,
+        requestBody,
+        requestMethod,
+        requestUrl,
+      } =
+        await runCreateWithServer(
+          root,
+          1,
+          'curso-demo',
+        );
+
+      assert(
+        requestMethod ===
+          'PUT',
+        `Se esperaba PUT y se recibió ${requestMethod}.`,
+      );
+
+      assert(
+        requestUrl ===
+          '/authoring-sync/courses/curso-demo',
+        `Endpoint inesperado: ${requestUrl}.`,
+      );
+
+      const payload =
+        JSON.parse(
+          requestBody,
+        );
+
+      assert(
+        payload.catalog.courseId ===
+          'curso-demo',
+        'El payload debía pertenecer a curso-demo.',
+      );
+
+      assert(
+        payload.catalog.labs.length ===
+          1,
+        'El payload debía contener 1 Lab.',
+      );
+
+      assert(
+        payload.snapshots.length ===
+          1,
+        'El payload debía contener 1 snapshot.',
+      );
+
+      assert(
+        result.stdout.includes(
+          'Sincronizado: curso-demo',
+        ),
+        'create_labs.sh debía completar el sync automático.',
+      );
+    } finally {
+      await rm(
+        root,
+        {
+          recursive:
+            true,
+          force:
+            true,
+        },
+      );
+    }
+  },
+);
+
+await test(
+  'create_labs rechaza configuración parcial de LabControl',
+  async () => {
+    const root =
+      await createRoot();
+
+    try {
+      const result =
+        spawnSync(
+          'bash',
+          [
+            CREATE_SCRIPT,
+            '1',
+            'curso-demo',
+          ],
+          {
+            cwd:
+              root,
+            encoding:
+              'utf8',
+            env: {
+              ...process.env,
+              ROOT_DIR:
+                'labs',
+              LABCONTROL_API_URL:
+                'http://127.0.0.1:3101',
+              LABCONTROL_AUTHORING_SYNC_TOKEN:
+                '',
+            },
+          },
+        );
+
+      assert(
+        result.status !==
+          0,
+        'La configuración parcial debía fallar.',
+      );
+
+      assert(
+        (
+          result.stdout +
+          result.stderr
+        ).includes(
+          'configuración incompleta de LabControl',
+        ),
+        'Debía explicar que faltan variables de LabControl.',
       );
     } finally {
       await rm(

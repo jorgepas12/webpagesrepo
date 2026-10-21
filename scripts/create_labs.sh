@@ -33,20 +33,34 @@ MANIFEST_GENERATOR="${SCRIPT_DIR}/generate_lab_manifest.mjs"
 ID_REGISTRY="${SCRIPT_DIR}/lab_id_registry.mjs"
 NORMALIZER="${SCRIPT_DIR}/normalize_course_labs.mjs"
 CATALOG_GENERATOR="${SCRIPT_DIR}/generate_course_catalog.mjs"
+COURSE_SYNC="${SCRIPT_DIR}/sync_course_catalog.mjs"
 
 ROOT_DIR="${ROOT_DIR:-labs}"
 TOTAL_LABS="${1:-}"
 COURSE_ID="${2:-}"
+SYNC_MODE="${3:-}"
 TRACKING_ENABLED="false"
+DRY_RUN="false"
+
+if [[ "${SYNC_MODE}" == "--dry-run" ]]; then
+  DRY_RUN="true"
+elif [[ -n "${SYNC_MODE}" ]]; then
+  echo "Error: argumento no reconocido: ${SYNC_MODE}"
+  echo "Uso:"
+  echo "  $0 <numero_de_labs>"
+  echo "  $0 <numero_de_labs> <course_id> [--dry-run]"
+  exit 1
+fi
 
 if [[ -z "${TOTAL_LABS}" ]]; then
   echo "Uso:"
   echo "  $0 <numero_de_labs>"
-  echo "  $0 <numero_de_labs> <course_id>"
+  echo "  $0 <numero_de_labs> <course_id> [--dry-run]"
   echo
   echo "Ejemplos:"
   echo "  $0 5"
   echo "  $0 5 terraform-aws-essentials"
+  echo "  $0 5 terraform-aws-essentials --dry-run"
   exit 1
 fi
 
@@ -90,6 +104,12 @@ if [[ -n "${COURSE_ID}" ]]; then
   if [[ ! -f "${CATALOG_GENERATOR}" ]]; then
     echo "Error: no se encontró el generador de catálogo:"
     echo "  ${CATALOG_GENERATOR}"
+    exit 1
+  fi
+
+  if [[ ! -f "${COURSE_SYNC}" ]]; then
+    echo "Error: no se encontró el cliente de sincronización:"
+    echo "  ${COURSE_SYNC}"
     exit 1
   fi
 fi
@@ -930,4 +950,29 @@ if [[ "${TRACKING_ENABLED}" == "true" ]]; then
   echo "Los manifiestos LabControl se generaron en .labcontrol/manifests/."
   echo "Las identidades estables quedaron registradas en _data/labcontrol-identities.yml."
   echo "El catálogo público quedó generado en labcontrol/${COURSE_ID}/course.json."
+
+  echo
+  echo "Sincronización con LabControl..."
+
+  if [[ "${DRY_RUN}" == "true" ]]; then
+    node "${COURSE_SYNC}"       "${COURSE_ID}"       --dry-run
+  elif [[
+    -n "${LABCONTROL_API_URL:-}" &&
+    -n "${LABCONTROL_AUTHORING_SYNC_TOKEN:-}"
+  ]]; then
+    node "${COURSE_SYNC}"       "${COURSE_ID}"
+  elif [[
+    -n "${LABCONTROL_API_URL:-}" ||
+    -n "${LABCONTROL_AUTHORING_SYNC_TOKEN:-}"
+  ]]; then
+    echo "Error: configuración incompleta de LabControl."
+    echo "Debes definir ambas variables:"
+    echo "  LABCONTROL_API_URL"
+    echo "  LABCONTROL_AUTHORING_SYNC_TOKEN"
+    exit 1
+  else
+    echo "  -> Omitida: LabControl no está configurado."
+    echo "     Define LABCONTROL_API_URL y LABCONTROL_AUTHORING_SYNC_TOKEN"
+    echo "     para habilitar la sincronización automática."
+  fi
 fi
