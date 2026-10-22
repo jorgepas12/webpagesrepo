@@ -20,6 +20,9 @@
   const ACCESS_TOKEN_KEY =
     "netec:participantAccessToken";
 
+  const RETURN_URL_KEY =
+    "netec:labControlReturnUrl";
+
   const QUEUE_PREFIX =
     "netec:trackingQueue:";
 
@@ -30,6 +33,9 @@
 
   const PROGRESS_APPLY_EVENT =
     "lab-progress-apply";
+
+  const PARTICIPANT_HEARTBEAT_MS =
+    10 * 60 * 1000;
 
   let flushingQueue = false;
 
@@ -157,56 +163,80 @@
      Capturar access token desde URL fragment
      --------------------------------------------------------- */
 
-  function captureAccessTokenFromHash() {
+  function captureAccessContextFromHash() {
     const hash =
       window.location.hash;
 
     if (
       !hash ||
-      !hash.startsWith(
-        "#lab-access="
-      )
+      hash.length <=
+        1
     ) {
       return;
     }
 
-    const encodedToken =
-      hash.substring(
-        "#lab-access=".length
+    const params =
+      new URLSearchParams(
+        hash.substring(
+          1
+        )
       );
 
-    if (!encodedToken) {
+    const accessToken =
+      params.get(
+        "lab-access"
+      );
+
+    const returnUrl =
+      params.get(
+        "lab-return"
+      );
+
+    if (accessToken) {
+      setAccessToken(
+        accessToken
+      );
+    }
+
+    if (returnUrl) {
+      sessionStorage.setItem(
+        RETURN_URL_KEY,
+        returnUrl
+      );
+    }
+
+    if (
+      accessToken ||
+      returnUrl
+    ) {
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}`
+      );
+    }
+  }
+
+  function applyLabControlNavigation() {
+    const returnUrl =
+      sessionStorage.getItem(
+        RETURN_URL_KEY
+      );
+
+    if (!returnUrl) {
       return;
     }
 
-    let token;
-
-    try {
-      token =
-        decodeURIComponent(
-          encodedToken
-        );
-    } catch (error) {
-      return;
-    }
-
-    if (!token) {
-      return;
-    }
-
-    setAccessToken(
-      token
-    );
-
-    /*
-     * Eliminar inmediatamente el token
-     * de la barra de direcciones.
-     */
-    window.history.replaceState(
-      null,
-      "",
-      `${window.location.pathname}${window.location.search}`
-    );
+    document
+      .querySelectorAll(
+        ".lab-nav a.btn"
+      )
+      .forEach(
+        link => {
+          link.href =
+            returnUrl;
+        }
+      );
   }
 
   /* ---------------------------------------------------------
@@ -418,6 +448,56 @@
         true,
       response
     };
+  }
+
+  async function keepParticipantSessionAlive(
+    root
+  ) {
+    const result =
+      await apiRequest(
+        root,
+        "/participant-access/me"
+      );
+
+    if (
+      result.unauthorized
+    ) {
+      const returnUrl =
+        sessionStorage.getItem(
+          RETURN_URL_KEY
+        );
+
+      if (returnUrl) {
+        window.location.href =
+          returnUrl;
+      }
+
+      return false;
+    }
+
+    return Boolean(
+      result.available &&
+      result.response &&
+      result.response.ok
+    );
+  }
+
+  function startParticipantHeartbeat(
+    root
+  ) {
+    window.setInterval(
+      () => {
+        if (
+          document.visibilityState ===
+          "visible"
+        ) {
+          void keepParticipantSessionAlive(
+            root
+          );
+        }
+      },
+      PARTICIPANT_HEARTBEAT_MS
+    );
   }
 
   async function sendStep(
@@ -846,7 +926,9 @@
       return;
     }
 
-    captureAccessTokenFromHash();
+    captureAccessContextFromHash();
+
+    applyLabControlNavigation();
 
     observeProgressChanges(
       root,
@@ -867,6 +949,10 @@
     ) {
       return;
     }
+
+    startParticipantHeartbeat(
+      root
+    );
 
     /*
      * Primero enviamos cambios locales que
@@ -925,6 +1011,10 @@
         ) {
           void (
             async () => {
+              await keepParticipantSessionAlive(
+                root
+              );
+
               const queueFlushed =
                 await flushQueue(
                   root

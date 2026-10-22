@@ -291,6 +291,17 @@ function createBrowser({
     replaceState() {},
   };
 
+  /*
+   * lab-tracker mantiene viva la sesión real con
+   * un heartbeat periódico. En este navegador
+   * simulado no ejecutamos timers reales.
+   */
+  window.setInterval =
+    () => 1;
+
+  window.clearInterval =
+    () => {};
+
   const context =
     vm.createContext({
       console,
