@@ -34,6 +34,8 @@ def prepare_lab(path: Path, course_id: str, number: int) -> tuple[str, int, int]
                 "tracking": "true", "lab_number": str(number), "position": str(number)}
     for field, desired in expected.items():
         field_match = re.search(rf"(?m)^{field}\s*:\s*([^#\r\n]+)", fm)
+        if field_match and field in ("course_id", "lab_id", "tracking"):
+            raise ValueError(f"{path}: {field} ya existe; revisar migración previa")
         if field_match:
             actual = field_match.group(1).strip().strip(chr(39) + chr(34))
             if actual != desired:
