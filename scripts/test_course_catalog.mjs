@@ -520,6 +520,58 @@ await test(
 );
 
 await test(
+  'restaura un Lab retirado sin perder snapshots ni manifiestos',
+  async () => {
+    const root = await createRoot();
+    try {
+      await writeLab(root, 1);
+      await writeLab(root, 2);
+      await writeManifest(root, 'terraform-aws-essentials', 'l001');
+      await writeManifest(root, 'terraform-aws-essentials', 'l002');
+
+      const readCatalog = async () => JSON.parse(
+        await readFile(
+          join(root, 'labcontrol', 'terraform-aws-essentials', 'course.json'),
+          'utf8',
+        ),
+      );
+      let run = runGenerator(root);
+      assert(run.status === 0, run.stderr || run.stdout);
+      assert((await readCatalog()).labs.length === 2, 'Estado A incorrecto.');
+
+      await writeLab(root, 2, { tracking: false });
+      run = runGenerator(root);
+      assert(run.status === 0, run.stderr || run.stdout);
+      const retired = await readCatalog();
+      assert(
+        retired.labs.length === 1 &&
+          !retired.labs.some(lab => lab.labId === 'l002'),
+        'Retiro B incorrecto.',
+      );
+
+      await writeLab(root, 2, { tracking: true });
+      run = runGenerator(root);
+      assert(run.status === 0, run.stderr || run.stdout);
+      const restored = await readCatalog();
+      assert(
+        restored.labs.length === 2 &&
+          restored.labs.some(lab => lab.labId === 'l002'),
+        'Restauración A incorrecta.',
+      );
+      const snapshot = JSON.parse(await readFile(
+        join(root, 'labcontrol', 'terraform-aws-essentials', 'content', 'l002.json'),
+        'utf8',
+      ));
+      assert(snapshot.labId === 'l002', 'Falta snapshot reactivado.');
+      assert(restored.labs[1].content.path === 'content/l002.json',
+        'La ruta no es relativa a course.json.');
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  },
+);
+
+await test(
   'rechaza números de Lab duplicados dentro del mismo curso',
   async () => {
     const root =
