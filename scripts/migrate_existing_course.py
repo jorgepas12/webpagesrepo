@@ -14,7 +14,7 @@ from pathlib import Path
 COURSE_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 LAB_FILE = re.compile(r"^lab([1-9][0-9]*)$")
 FRONT = re.compile(r"\A---\r?\n([\s\S]*?)\r?\n---\r?\n")
-TASK = re.compile(r"^##\\s+\\S")
+TASK = re.compile(r"^##\s+\S")
 STEP = re.compile(r"{%\s*include\s+step_label\.html\b([^%]*)%}")
 ID = re.compile(r"\bid\s*=\s*['\"]([^'\"]+)['\"]")
 TASK_ASSIGN = re.compile(r"{%\s*assign\s+tracking_task_id\s*=")
@@ -33,13 +33,13 @@ def prepare_lab(path: Path, course_id: str, number: int) -> tuple[str, int, int]
     expected = {"course_id": course_id, "lab_id": f"l{number:03d}",
                 "tracking": "true", "lab_number": str(number), "position": str(number)}
     for field, desired in expected.items():
-        field_match = re.search(rf"(?m)^{field}\\s*:\\s*([^#\\r\\n]+)", fm)
+        field_match = re.search(rf"(?m)^{field}\s*:\s*([^#\r\n]+)", fm)
         if field_match:
-            actual = field_match.group(1).strip().strip("'\\\"")
+            actual = field_match.group(1).strip().strip("'\\"")
             if actual != desired:
                 raise ValueError(f"{path}: {field}={actual!r}, se esperaba {desired!r}")
         else:
-            additions.append(f"{field}: {desired}\\n")
+            additions.append(f"{field}: {desired}\n")
     header = "".join(additions)
     output_body = []
     task_no = 0
@@ -63,7 +63,7 @@ def prepare_lab(path: Path, course_id: str, number: int) -> tuple[str, int, int]
             if active_section != section:
                 task_no += 1
                 active_section = section
-                output_body.append(f'\\n{{% assign tracking_task_id = "t{task_no:03d}" %}}\\n\\n')
+                output_body.append(f'\n{{% assign tracking_task_id = "t{task_no:03d}" %}}\n\n')
             step_no += 1
             output_body.append(STEP.sub(
                 lambda m: m.group(0).replace("step_label.html", f'step_label.html id="s{step_no:03d}"', 1),
