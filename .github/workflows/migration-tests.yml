@@ -1,0 +1,24 @@
+name: Existing course migration tests
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/migrate_existing_course.py'
+      - 'scripts/test_migrate_existing_course.py'
+      - 'EXISTING-COURSE-MIGRATION.md'
+      - '.github/workflows/migration-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  migration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test migration dry-run and apply
+        run: python scripts/test_migrate_existing_course.py
