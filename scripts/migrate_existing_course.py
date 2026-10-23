@@ -157,6 +157,20 @@ def main() -> None:
             copied.append(filename)
     for labfile, result in planned:
         labfile.write_text(result, encoding="utf-8", newline="")
+    # Preserve existing Jekyll configuration and add a missing tracking API.
+    config = root / "_config.yml"
+    if config.is_file():
+        current_config = config.read_text(encoding="utf-8")
+        if not re.search(r"(?m)^\s*labcontrol_api_url\s*:", current_config):
+            destination = backup / "_config.yml"
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(config, destination)
+            with config.open("a", encoding="utf-8") as stream:
+                stream.write("\n# Lab Control API (public URL; no secrets)\n")
+                stream.write('labcontrol_api_url: "https://labcontrol.superwebapp.com/api"\n')
+            print("OK: API de Lab Control agregada a _config.yml")
+        else:
+            print("INFO: labcontrol_api_url existente; verificar su valor antes de publicar")
     registry.parent.mkdir(parents=True, exist_ok=True)
     registry.write_text(record, encoding="utf-8")
     print(f"OK: {len(labs)} labs migrados; backup en {backup}")
