@@ -14,7 +14,7 @@ from pathlib import Path
 COURSE_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 LAB_FILE = re.compile(r"^lab([1-9][0-9]*)$")
 FRONT = re.compile(r"\A---\r?\n([\s\S]*?)\r?\n---\r?\n")
-TASK = re.compile(r"^##\s+Tarea\s+\d+\b", re.I)
+TASK = re.compile(r"^##\\s+\\S")
 STEP = re.compile(r"{%\s*include\s+step_label\.html\b([^%]*)%}")
 ID = re.compile(r"\bid\s*=\s*['\"]([^'\"]+)['\"]")
 TASK_ASSIGN = re.compile(r"{%\s*assign\s+tracking_task_id\s*=")
@@ -29,14 +29,23 @@ def prepare_lab(path: Path, course_id: str, number: int) -> tuple[str, int, int]
         raise ValueError(f"{path}: falta YAML frontmatter válido")
     fm = match.group(1)
     body = original[match.end():]
-    for field in ("course_id", "lab_id", "tracking", "lab_number", "position"):
-        if re.search(rf"(?m)^{field}\s*:", fm):
-            raise ValueError(f"{path}: {field} existente; se requiere revisión manual")
-    header = (f"course_id: {course_id}\nlab_id: l{number:03d}\n"
-              f"tracking: true\nlab_number: {number}\nposition: {number}\n")
+    additions = []
+    expected = {"course_id": course_id, "lab_id": f"l{number:03d}",
+                "tracking": "true", "lab_number": str(number), "position": str(number)}
+    for field, desired in expected.items():
+        field_match = re.search(rf"(?m)^{field}\\s*:\\s*([^#\\r\\n]+)", fm)
+        if field_match:
+            actual = field_match.group(1).strip().strip("'\\\"")
+            if actual != desired:
+                raise ValueError(f"{path}: {field}={actual!r}, se esperaba {desired!r}")
+        else:
+            additions.append(f"{field}: {desired}\\n")
+    header = "".join(additions)
     output_body = []
     task_no = 0
     step_no = 0
+    section = 0
+    active_section = -1
     in_comment = False
     in_fence = False
     for line in body.splitlines(keepends=True):
@@ -45,16 +54,16 @@ def prepare_lab(path: Path, course_id: str, number: int) -> tuple[str, int, int]
             in_fence = not in_fence
         is_comment = in_comment or "<!--" in line
         if not in_fence and not is_comment and TASK.match(line):
-            task_no += 1
-            output_body.append(line)
-            output_body.append(f'\n{{% assign tracking_task_id = "t{task_no:03d}" %}}\n')
-        elif not in_fence and not is_comment and STEP.search(line):
-            if task_no == 0:
-                raise ValueError(f"{path}: paso sin encabezado '## Tarea N'")
+            section += 1
+        if not in_fence and not is_comment and STEP.search(line):
             if len(STEP.findall(line)) != 1:
                 raise ValueError(f"{path}: más de un step_label en una línea")
             if ID.search(STEP.search(line).group(1)):
                 raise ValueError(f"{path}: el paso ya tiene id; revisión manual")
+            if active_section != section:
+                task_no += 1
+                active_section = section
+                output_body.append(f'\\n{{% assign tracking_task_id = "t{task_no:03d}" %}}\\n\\n')
             step_no += 1
             output_body.append(STEP.sub(
                 lambda m: m.group(0).replace("step_label.html", f'step_label.html id="s{step_no:03d}"', 1),
