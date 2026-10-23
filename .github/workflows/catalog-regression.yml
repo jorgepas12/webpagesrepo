@@ -1,0 +1,19 @@
+name: Catalog regression
+on:
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/catalog-regression.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/test_course_catalog.mjs
+      - run: node scripts/test_authoring_flow.mjs
