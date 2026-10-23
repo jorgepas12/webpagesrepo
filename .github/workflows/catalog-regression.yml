@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'scripts/**'
+      - 'assets/js/lab-tracker.js'
       - '.github/workflows/catalog-regression.yml'
   workflow_dispatch:
 permissions:
@@ -17,3 +18,4 @@ jobs:
           node-version: '24'
       - run: node scripts/test_course_catalog.mjs
       - run: node scripts/test_authoring_flow.mjs
+      - run: node scripts/test_lab_tracker.mjs
