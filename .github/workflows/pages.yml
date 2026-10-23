@@ -41,6 +41,7 @@ jobs:
           node --check scripts/lab_id_registry.mjs
           node --check scripts/normalize_course_labs.mjs
           node --check scripts/test_authoring_flow.mjs
+          node --check scripts/init_course.mjs
           bash -n scripts/create_labs.sh
           bash -n scripts/insert_lab.sh
 
