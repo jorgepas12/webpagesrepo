@@ -35,7 +35,7 @@ def prepare_lab(path: Path, course_id: str, number: int) -> tuple[str, int, int]
     for field, desired in expected.items():
         field_match = re.search(rf"(?m)^{field}\s*:\s*([^#\r\n]+)", fm)
         if field_match:
-            actual = field_match.group(1).strip().strip("'\\"")
+            actual = field_match.group(1).strip().strip(chr(39) + chr(34))
             if actual != desired:
                 raise ValueError(f"{path}: {field}={actual!r}, se esperaba {desired!r}")
         else:
