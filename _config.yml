@@ -47,7 +47,7 @@ favicon: /assets/img/favicon.ico
 # - No incluir "/" al final.
 # - No colocar tokens ni credenciales aquí.
 #
-labcontrol_api_url: ""
+labcontrol_api_url: "https://labcontrol.superwebapp.com/api"
 
 # =====================================================================
 # CONFIGURACIÓN LOCAL
