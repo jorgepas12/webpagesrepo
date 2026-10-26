@@ -2,6 +2,7 @@
 // Inicializa una identidad de curso una sola vez, sin crear Labs.
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {createInterface} from 'node:readline/promises';
 import process from 'node:process';
 
@@ -48,4 +49,4 @@ async function run(){
   console.log('Sincronización global con Lab Control: pendiente de #126.');
  }finally{cli.close();}
 }
-if(process.argv[1]&&resolve(process.argv[1])===resolve(new URL(import.meta.url).pathname))run().catch(e=>{console.error('Error:',e.message);process.exitCode=1;});
+if(process.argv[1]&&resolve(process.argv[1])===resolve(fileURLToPath(import.meta.url)))run().catch(e=>{console.error('Error:',e.message);process.exitCode=1;});
