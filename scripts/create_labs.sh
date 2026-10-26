@@ -42,6 +42,23 @@ SYNC_MODE="${3:-}"
 TRACKING_ENABLED="false"
 DRY_RUN="false"
 
+# Si hay identidad canónica, reutilizarla incluso sin segundo argumento.
+# ROOT_DIR puede variar para pruebas, pero el archivo de identidad vive
+# en la raíz del repositorio (igual que scripts/).
+IDENTITY_FILE="$(cd "${SCRIPT_DIR}/.." && pwd)/course.identity.json"
+if [[ -f "${IDENTITY_FILE}" ]]; then
+  if ! command -v node >/dev/null 2>&1; then
+    echo "Error: Node.js es requerido para leer course.identity.json."
+    exit 1
+  fi
+  IDENTITY_COURSE_ID="$(node "${SCRIPT_DIR}/read_course_identity.mjs" "${IDENTITY_FILE}")" || exit 1
+  if [[ -n "${COURSE_ID}" && "${COURSE_ID}" != "${IDENTITY_COURSE_ID}" ]]; then
+    echo "Error: course_id '${COURSE_ID}' no coincide con identidad canónica '${IDENTITY_COURSE_ID}'."
+    exit 1
+  fi
+  COURSE_ID="${IDENTITY_COURSE_ID}"
+fi
+
 if [[ "${SYNC_MODE}" == "--dry-run" ]]; then
   DRY_RUN="true"
 elif [[ -n "${SYNC_MODE}" ]]; then

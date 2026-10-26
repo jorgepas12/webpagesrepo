@@ -10,6 +10,6 @@ Introduce nombre y descripción. El script propone un código compacto (opción 
 
 Genera `course.identity.json` como fuente canónica y agrega una entrada sin Labs a `_data/courses.yml`. No sobrescribe la identidad existente; no ejecutes el inicializador en cursos ya publicados.
 
-**Limitación de esta primera fase:** comprueba formato y duplicados en el YAML local, no unicidad contra los cursos de Lab Control. La sincronización y comprobación global corresponden a `jorgepas12/lab-control#126`. Los comandos actuales de creación de Labs aún requieren usar explícitamente el Tracking ID.
+**Limitación de esta primera fase:** comprueba formato y duplicados en el YAML local, no unicidad contra los cursos de Lab Control. La sincronización y comprobación global corresponden a `jorgepas12/lab-control#126`. `scripts/create_labs.sh` utiliza automáticamente el Tracking ID de `course.identity.json` cuando existe; el segundo argumento es opcional, y se rechaza si contradice la identidad canónica. Los repositorios antiguos sin `course.identity.json` conservan su funcionamiento anterior.
 
 El archivo de ejemplo original de la plantilla en `_data/courses.yml` no se borra automáticamente. Antes de publicar un curso nuevo, revisa las entradas de ejemplo.
