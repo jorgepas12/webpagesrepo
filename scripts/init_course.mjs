@@ -26,17 +26,21 @@ const yamlQuote=s=>JSON.stringify(s).replace(/\\n/g,' ');
 async function run(){
  try{await readFile(identityPath,'utf8');throw Error('Ya existe course.identity.json. No se modifica la identidad existente.');}
  catch(e){if(e.code!=='ENOENT')throw e;}
- const cli=createInterface({input:process.stdin,output:process.stdout});
+ const args=process.argv.slice(2);
+ const valueOf=flag=>{const i=args.indexOf(flag);return i>=0?args[i+1]:undefined;};
+ const batch=args.includes('--yes');
+ if(batch && !valueOf('--name'))throw Error('--yes requiere --name.');
+ const cli=batch?null:createInterface({input:process.stdin,output:process.stdout});
  try{
-  const name=(await cli.question('Nombre del curso: ')).trim();
+  const name=(batch?valueOf('--name'):await cli.question('Nombre del curso: ')).trim();
   if(!name)throw Error('El nombre es obligatorio.');
-  const description=(await cli.question('Descripción: ')).trim();
+  const description=batch?(valueOf('--description')??''):(await cli.question('Descripción: ')).trim();
   const proposal=suggest(name);
   console.log('Sugerencia editable. Confirma un código reconocible y breve.');
-  const code=((await cli.question('Código ['+proposal.code+']: ')).trim()||proposal.code).toUpperCase();
-  const trackingId=((await cli.question('Tracking ID ['+proposal.trackingId+']: ')).trim()||proposal.trackingId).toLowerCase();
+  const code=(batch?(valueOf('--code')??proposal.code):((await cli.question('Código ['+proposal.code+']: ')).trim()||proposal.code)).toUpperCase();
+  const trackingId=(batch?(valueOf('--tracking-id')??code.toLowerCase()):((await cli.question('Tracking ID ['+proposal.trackingId+']: ')).trim()||proposal.trackingId)).toLowerCase();
   if(!valid(code,trackingId))throw Error('Código: 2-16 caracteres A-Z/0-9. Tracking ID: 2-20 caracteres a-z/0-9.');
-  const answer=(await cli.question('¿Confirmar identidad? (s/N): ')).trim().toLowerCase();
+  const answer=batch?'si':(await cli.question('¿Confirmar identidad? (s/N): ')).trim().toLowerCase();
   if(answer!=='s'&&answer!=='si')return console.log('Cancelado; no se modificaron archivos.');
   const old=await readFile(yamlPath,'utf8').catch(e=>{if(e.code==='ENOENT')return '';throw e;});
   if(new RegExp('^'+trackingId+':\\s*$','m').test(old))throw Error('Tracking ID ya existe en _data/courses.yml.');
@@ -47,6 +51,6 @@ async function run(){
   await writeFile(yamlPath,old+(old&&!old.endsWith('\n')?'\n':'')+'\n'+trackingId+':\n  title: '+yamlQuote(name)+'\n  intro: '+yamlQuote(description)+'\n  labs: []\n','utf8');
   console.log('Identidad creada: '+identityPath);
   console.log('Sincronización global con Lab Control: pendiente de #126.');
- }finally{cli.close();}
+ }finally{cli?.close();}
 }
 if(process.argv[1]&&resolve(process.argv[1])===resolve(fileURLToPath(import.meta.url)))run().catch(e=>{console.error('Error:',e.message);process.exitCode=1;});

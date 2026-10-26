@@ -16,8 +16,8 @@ async function fixture(fn){
 }
 test('inicializador propone ID compacto validable',async()=>{
  await fixture(async base=>{
-  const run=spawnSync(process.execPath,[join(base,'scripts','init_course.mjs')],{
-   cwd:base,input:'Terraform en Google Cloud Intermedio\nDescripción de prueba\n\n\ns\n',encoding:'utf8'});
+  const run=spawnSync(process.execPath,[join(base,'scripts','init_course.mjs'),'--name','Terraform en Google Cloud Intermedio','--description','Descripción de prueba','--yes'],{
+   cwd:base,encoding:'utf8'});
   assert.equal(run.status,0,run.stderr);
   const data=JSON.parse(await readFile(join(base,'course.identity.json'),'utf8'));
   assert.equal(data.code,'TFGCPINT');assert.equal(data.trackingId,'tfgcpint');
