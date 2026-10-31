@@ -15,6 +15,9 @@ plugins:
   - jekyll-seo-tag
   - jekyll-github-metadata
 
+include:
+  - .well-known
+
 exclude:
   - .bundle
   - vendor
