@@ -6,7 +6,7 @@ try {
   const location = process.argv[2];
   if (!location) throw Error('Ruta de identidad requerida.');
   const identity = JSON.parse(readFileSync(location, 'utf8'));
-  if (!/^[A-Z0-9]{2,16}$/.test(identity.code ?? '') ||
+  if (!/^[A-Z0-9][A-Z0-9_]{1,49}$/.test(identity.code ?? '') ||
       !/^[a-z0-9]{2,20}$/.test(identity.trackingId ?? '') ||
       !String(identity.name ?? '').trim()) {
     throw Error('Identidad incompleta o inválida.');
