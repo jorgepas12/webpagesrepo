@@ -28,3 +28,5 @@ No se editan las instrucciones pedagógicas de cursos existentes como parte de u
 ## Validación y corrección de Step IDs
 
 Antes de generar manifests, utiliza `node scripts/repair_step_ids.mjs --check`. Para detectar y corregir duplicados/saltos con revisión humana, consulta [guía de Step IDs](docs/STEP-ID-REPAIR.md). El modo `--apply` es explícito, crea respaldos y debe evaluarse frente al progreso histórico de Lab Control.
+
+**Automatización al publicar:** en `push main`, si no hay conexión de sincronización Lab Control configurada, GitHub Actions detecta e inserta/corrige los Step IDs y guarda los cambios con `github-actions[bot]` antes de generar manifests y Pages. Si el curso está configurado para sincronizar con Lab Control, se bloquea la renumeración automática para proteger progreso existente. Consultar [guía de reparación](docs/STEP-ID-REPAIR.md).
