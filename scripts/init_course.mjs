@@ -50,7 +50,7 @@ async function run(){
   await mkdir(join(root,'_data'),{recursive:true});
   await writeFile(yamlPath,old+(old&&!old.endsWith('\n')?'\n':'')+'\n'+trackingId+':\n  title: '+yamlQuote(name)+'\n  intro: '+yamlQuote(description)+'\n  labs: []\n','utf8');
   console.log('Identidad creada: '+identityPath);
-  console.log('Sincronización global con Lab Control: pendiente de #126.');
+  console.log('Para registrar identidad: node scripts/sync_course_identity.mjs (requiere API y token de authoring autorizados).');
  }finally{cli?.close();}
 }
 if(process.argv[1]&&resolve(process.argv[1])===resolve(fileURLToPath(import.meta.url)))run().catch(e=>{console.error('Error:',e.message);process.exitCode=1;});
