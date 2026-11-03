@@ -24,3 +24,7 @@ Este repositorio es el **origen de las herramientas compartidas** de creación, 
 Los cambios reutilizables probados primero en cursos como `Netec-Mx/TRFRM_GCP_INT` deben consolidarse y probarse **aquí** para próximos cursos. Nunca copiar `course.identity.json`, `_data/courses.yml`, secretos o `.well-known/labcontrol-course-link.txt` de un curso real a otro.
 
 No se editan las instrucciones pedagógicas de cursos existentes como parte de una actualización del runtime. Todos los cambios se revisan mediante PR y pruebas de Jekyll.
+
+## Validación y corrección de Step IDs
+
+Antes de generar manifests, utiliza `node scripts/repair_step_ids.mjs --check`. Para detectar y corregir duplicados/saltos con revisión humana, consulta [guía de Step IDs](docs/STEP-ID-REPAIR.md). El modo `--apply` es explícito, crea respaldos y debe evaluarse frente al progreso histórico de Lab Control.
