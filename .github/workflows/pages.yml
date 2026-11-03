@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -32,7 +32,6 @@ jobs:
         run: |
           node scripts/test_lab_manifest.mjs
           node --test scripts/test_repair_step_ids.mjs
-          node scripts/repair_step_ids.mjs --check
           node scripts/test_sync_lab_manifests.mjs
           node scripts/test_course_catalog.mjs
           node scripts/test_lab_id_registry.mjs
@@ -58,6 +57,50 @@ jobs:
           node --check scripts/test_authoring_flow.mjs
           bash -n scripts/create_labs.sh
           bash -n scripts/insert_lab.sh
+
+      # En pushes a main se corrigen errores editoriales de IDs antes de generar
+      # manifests. Nunca renumerar automáticamente un curso sincronizado con
+      # Lab Control: podría romper referencias de progreso/revisiones congeladas.
+      - name: Repair Step IDs safely on push
+        env:
+          LABCONTROL_API_URL: ${{ vars.LABCONTROL_API_URL }}
+          LABCONTROL_SYNC_TOKEN: ${{ secrets.LABCONTROL_SYNC_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if node scripts/repair_step_ids.mjs --check; then
+            echo "Step IDs: sin cambios."
+            exit 0
+          fi
+
+          if [[ -n "${LABCONTROL_API_URL}" || -n "${LABCONTROL_SYNC_TOKEN}" ]]; then
+            echo "::error::Step IDs requieren corrección, pero hay configuración de Lab Control. Revisión manual obligatoria para preservar progreso histórico."
+            exit 1
+          fi
+
+          echo "Curso sin configuración de sincronización: normalizando IDs de Steps..."
+          node scripts/repair_step_ids.mjs --apply
+          node scripts/repair_step_ids.mjs --check
+          git diff --check
+
+          git add -- 'labs/lab*/lab*.md'
+          if git diff --cached --quiet; then
+            echo "Sin archivos modificados tras la auditoría."
+            exit 0
+          fi
+
+          # Evita escribir sobre cambios simultáneos en main.
+          remote_sha="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [[ "${remote_sha}" != "${GITHUB_SHA}" ]]; then
+            echo "::error::main cambió mientras se ejecutaba el workflow. Reintentar con un nuevo push; no se sobrescribirá trabajo ajeno."
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "fix(labcontrol): normalizar Step IDs automáticamente"
+          git push origin HEAD:main
+          echo "Step IDs corregidos y guardados en main. El build continuará con la versión normalizada."
 
       - name: Generate LabControl course catalog
         run: |
