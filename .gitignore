@@ -51,3 +51,7 @@ instrucciones/EquipoDC.md
 .labcontrol/
 # LabControl public course catalogs
 labcontrol/
+
+# Respaldos de migración y actualización técnica de cursos existentes
+.migration-backup-labcontrol/
+.labcontrol-template-backup/
