@@ -9,7 +9,8 @@
  * IMPORTANTE: cambiar IDs afecta referencias históricas de progreso en Lab Control.
  * No ejecutar --apply ni publicar cambios sin revisar el diff y las sesiones del curso.
  */
-import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile, mkdir, copyFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
@@ -18,6 +19,7 @@ const STEP_INCLUDE = /{%\s*include\s+step_label\.html\b[\s\S]*?%}/g;
 const ID_ATTRIBUTE = /\bid\s*=\s*(["'])([^"']*)\1/;
 const LAB_FILE = /^lab([1-9]\d*)$/;
 const FRONTMATTER_TRACKING_OFF = /^tracking:\s*(?:false|no|0)\s*$/m;
+const FRONTMATTER = /^---\s*\r?\n([\s\S]*?)\r?\n---/;
 
 function maskedComments(source) {
   // Conservar offsets/longitud para reemplazos exactos del contenido original.
@@ -31,7 +33,8 @@ function stepId(n) {
 
 export function auditLab(source, name = 'Lab') {
   const visible = maskedComments(source);
-  if (FRONTMATTER_TRACKING_OFF.test(visible.split(/^---\s*$/m).slice(0, 3).join('\n'))) {
+  const frontMatter = visible.match(FRONTMATTER);
+  if (frontMatter && FRONTMATTER_TRACKING_OFF.test(frontMatter[1])) {
     return { name, skipped: true, changes: [], count: 0, source };
   }
   let match;
@@ -115,9 +118,21 @@ export async function run(args = process.argv.slice(2)) {
     return 0;
   }
   if (mode === 'apply') {
-    // Prevalidar todos los Labs antes de modificar cualquiera.
+    if (!updates.length) return 0;
+    // Prevalidar todos los Labs y guardar un respaldo de cada archivo original.
+    // Nunca modificar el documento académico sin respaldar primero.
+    const stamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14)
+      + '-' + randomUUID().slice(0, 8);
+    const backupRoot = join(root, '.step-id-backup', stamp);
+    for (const update of updates) {
+      const relativeLab = update.filename.slice(folder.length + 1);
+      const backupPath = join(backupRoot, relativeLab);
+      await mkdir(join(backupRoot, relativeLab.split(/[\\/]/)[0]), { recursive: true });
+      await copyFile(update.filename, backupPath);
+    }
     for (const update of updates) await writeFile(update.filename, update.content, 'utf8');
-    console.log(`Actualizados ${updates.length} Labs; ${issues} Step IDs. Revisa git diff y regenera manifests.`);
+    console.log(`Actualizados ${updates.length} Labs; ${issues} Step IDs. Backup: ${backupRoot}`);
+    console.log('Revisa git diff y regenera manifests; NO sincronizar automáticamente con Lab Control.');
   } else {
     console.log(`DRY-RUN: ${issues} cambios propuestos; no se modificó ningún archivo. Usar --apply tras revisar.`);
   }
