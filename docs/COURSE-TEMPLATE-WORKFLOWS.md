@@ -115,3 +115,7 @@ Para vincular la URL ver [`.well-known` y challenge](COURSE-LINK-WELL-KNOWN.md).
 - [ ] Se ejecutan tests de nuevo/existente según corresponda.
 - [ ] Las instrucciones académicas del curso son idénticas.
 - [ ] El commit y PR son del repositorio correcto; publicar Pages es decisión separada.
+
+## F. Validación de IDs antes de generar catálogo
+
+Ejecutar `node scripts/repair_step_ids.mjs --check` antes de publicar. Si falla por IDs duplicados, saltos o desorden, ejecutar el dry-run `node scripts/repair_step_ids.mjs`, revisar el impacto en revisiones congeladas/progreso, y sólo entonces considerar `--apply`. Ver [procedimiento de reparación de Steps](STEP-ID-REPAIR.md). No hay renumeración automática durante GitHub Actions.
