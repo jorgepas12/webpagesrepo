@@ -32,6 +32,7 @@ jobs:
           node --check assets/js/lab-tracker.js
           node --check scripts/update_existing_course_runtime.mjs
           node --check scripts/write_course_link_proof.mjs
+          node --check scripts/repair_step_ids.mjs
           python -m py_compile scripts/migrate_existing_course.py
           bash -n scripts/create_labs.sh
       - name: Instructor practice and progress regressions
@@ -48,6 +49,8 @@ jobs:
         run: |
           node --test scripts/test_update_existing_course_runtime.mjs
           node --test scripts/test_write_course_link_proof.mjs
+          node --test scripts/test_repair_step_ids.mjs
+          node scripts/repair_step_ids.mjs --check
           node scripts/test_init_course.mjs
           node scripts/test_adopt_existing_course.mjs
           node scripts/test_sync_course_identity.mjs
