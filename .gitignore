@@ -55,3 +55,6 @@ labcontrol/
 # Respaldos de migración y actualización técnica de cursos existentes
 .migration-backup-labcontrol/
 .labcontrol-template-backup/
+
+# Backups locales del reparador de Step IDs
+.step-id-backup/
