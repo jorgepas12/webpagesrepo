@@ -83,7 +83,7 @@ jobs:
           node scripts/repair_step_ids.mjs --check
           git diff --check
 
-          git add -- 'labs/lab*/lab*.md'
+          git add -- labs/
           if git diff --cached --quiet; then
             echo "Sin archivos modificados tras la auditoría."
             exit 0
