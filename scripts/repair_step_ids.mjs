@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * Audita y normaliza SOLO IDs de {% include step_label.html id="sNNN" %}.
+ * Inserta id="sNNN" cuando el include no declara ninguno.
  *
  * --check: falla con exit code 1 si un Lab presenta IDs fuera de secuencia.
  * (sin argumentos): dry-run sin escrituras.
@@ -48,7 +49,13 @@ export function auditLab(source, name = 'Lab') {
     const raw = source.slice(match.index, match.index + match[0].length);
     const attr = raw.match(ID_ATTRIBUTE);
     const line = source.slice(0, match.index).split(/\r?\n/).length;
-    if (!attr) throw Error(`${name} línea ${line}: step_label.html sin atributo id explícito; corregir manualmente.`);
+    if (!attr) {
+      const wanted = stepId(count);
+      changes.push({ line, from: '(sin id)', to: wanted, reason: 'ID faltante' });
+      const begin = match.index + raw.lastIndexOf('%}');
+      replacements.push({ begin, end: begin, text: ` id="${wanted}"` });
+      continue;
+    }
     const oldId = attr[2];
     if (!/^s\d{3}$/.test(oldId)) {
       throw Error(`${name} línea ${line}: ID inválido "${oldId}", esperado sNNN.`);

@@ -40,8 +40,15 @@ test('Lab con tracking false se omite', () => {
   assert.equal(result.source,source);
 });
 
-test('ID ausente o inválido provoca error sin generar cambios', () => {
-  assert.throws(() => auditLab(make(['s001']).replace('id="s001"','')), /sin atributo id/);
+test('IDs ausentes se insertan en orden sin alterar instrucciones; inválidos fallan', () => {
+  const source = make(['s001','s002']).replace('id="s002"', '');
+  const report = auditLab(source);
+  assert.deepEqual(report.changes.map(c => [c.from,c.to]), [['(sin id)','s002']]);
+  assert.equal(report.count,2);
+  assert.match(report.source, /step_label\.html\s+id="s002"\s*%}/);
+  assert.equal(auditLab(report.source).changes.length,0);
+  const withoutId = value => value.replace(/step_label\.html\s+(?:id="s\d{3}"\s*)?%}/g, 'step_label.html %}');
+  assert.equal(withoutId(report.source), withoutId(source));
   assert.throws(() => auditLab(make(['s001']).replace('id="s001"','id="abc"')), /ID inválido/);
 });
 
