@@ -175,20 +175,20 @@ def main() -> None:
     # Never copy an actual proof from the template or another course.
     if config.is_file():
         current_config = config.read_text(encoding="utf-8")
-        if not re.search(r"(?m)^\\s*-\\s*\\.well-known\\s*$", current_config):
+        if not re.search(r"(?m)^\s*-\s*\.well-known\s*$", current_config):
             destination = backup / "_config.yml"
             if not destination.exists():
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(config, destination)
-            if re.search(r"(?m)^include:\\s*$", current_config):
+            if re.search(r"(?m)^include:\s*$", current_config):
                 current_config = re.sub(
-                    r"(?m)^(include:\\s*\\n)",
-                    lambda m: m.group(1) + "  - .well-known\\n",
+                    r"(?m)^(include:\s*\n)",
+                    lambda m: m.group(1) + "  - .well-known\n",
                     current_config,
                     count=1,
                 )
             elif not re.search(r"(?m)^include:", current_config):
-                current_config += "\\ninclude:\\n  - .well-known\\n"
+                current_config += "\ninclude:\n  - .well-known\n"
             else:
                 parser.error("include de _config.yml es formato no reconocido: integrar .well-known manualmente")
             config.write_text(current_config, encoding="utf-8")
