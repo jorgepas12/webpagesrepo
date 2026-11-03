@@ -47,6 +47,7 @@ jobs:
       - name: New and existing course regressions
         run: |
           node --test scripts/test_update_existing_course_runtime.mjs
+          node --test scripts/test_write_course_link_proof.mjs
           node scripts/test_init_course.mjs
           node scripts/test_adopt_existing_course.mjs
           node scripts/test_sync_course_identity.mjs
@@ -54,3 +55,16 @@ jobs:
           node scripts/test_course_catalog.mjs
           node scripts/test_authoring_flow.mjs
           python scripts/test_migrate_existing_course.py
+
+  jekyll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - name: Build template with Jekyll
+        env:
+          JEKYLL_ENV: production
+        run: bundle exec jekyll build --trace
