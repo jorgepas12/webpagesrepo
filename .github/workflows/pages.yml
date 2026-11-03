@@ -43,6 +43,7 @@ jobs:
           node scripts/test_lab_progress_storage.mjs
           node scripts/test_lab_tracker.mjs
           node --test scripts/test_update_existing_course_runtime.mjs
+          node --test scripts/test_write_course_link_proof.mjs
           node --check assets/js/lab-demo-context.js
           node --check scripts/update_existing_course_runtime.mjs
           node --check scripts/write_course_link_proof.mjs
