@@ -34,8 +34,8 @@ const demo = context.window.LabControlDemo;
 assert.equal(demo.isActive(), true);
 
 assert.equal(
-  demo.getProgressKey("terrgcpint", "l001"),
-  "netec:instructorDemoProgress:session-157:terrgcpint:l001"
+  demo.getProgressKey("cursoejemplo", "l001"),
+  "netec:instructorDemoProgress:session-157:cursoejemplo:l001"
 );
 
 console.log("✓ progreso del instructor usa una clave independiente");
