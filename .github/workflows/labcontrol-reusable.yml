@@ -1,0 +1,120 @@
+# Central validation and optional publication for existing Netec Jekyll courses.
+# During development this checks out the feature branch; pin a release SHA/tag before production.
+name: LabControl central course pipeline
+
+on:
+  workflow_call:
+    inputs:
+      tracking_id:
+        description: Stable tracking ID already present in the course's Jekyll catalog
+        required: true
+        type: string
+      deploy:
+        description: Publish to GitHub Pages after validation (enable only when replacing existing Pages workflow)
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout course repository
+        uses: actions/checkout@v4
+        with:
+          path: course
+          persist-credentials: false
+
+      - name: Checkout centralized tooling
+        uses: actions/checkout@v4
+        with:
+          repository: jorgepas12/webpagesrepo
+          ref: feat/central-course-onboarding-cka
+          path: tooling
+          persist-credentials: false
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Validate identity and migrated lab metadata
+        working-directory: course
+        env:
+          EXPECTED_TRACKING_ID: ${{ inputs.tracking_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const identity = JSON.parse(readFileSync("course.identity.json", "utf8"));
+            const expected = process.env.EXPECTED_TRACKING_ID;
+            if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(expected) || identity.trackingId !== expected) {
+              throw new Error("Tracking ID inexistente o distinto del curso");
+            }
+            const yaml = readFileSync("_data/courses.yml", "utf8");
+            if (!yaml.split(/\r?\n/).some(line => line === expected + ":")) {
+              throw new Error("Tracking ID no aparece en _data/courses.yml");
+            }
+          '
+
+      - name: Validate step identities
+        working-directory: course
+        run: node ../tooling/scripts/repair_step_ids.mjs --check --root .
+
+      - name: Generate manifests and catalog with centralized tooling
+        working-directory: course
+        run: |
+          node ../tooling/scripts/generate_lab_manifest.mjs --all
+          node ../tooling/scripts/generate_course_catalog.mjs
+
+      - name: Validate course catalog
+        working-directory: course
+        env:
+          EXPECTED_TRACKING_ID: ${{ inputs.tracking_id }}
+        run: |
+          test -s "labcontrol/$EXPECTED_TRACKING_ID/course.json"
+          node -e 'const fs=require("node:fs");const id=process.env.EXPECTED_TRACKING_ID;const p="labcontrol/"+id+"/course.json";JSON.parse(fs.readFileSync(p,"utf8"));'
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        env:
+          BUNDLE_GEMFILE: ${{ github.workspace }}/course/Gemfile
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Build Jekyll
+        working-directory: course
+        env:
+          BUNDLE_GEMFILE: ${{ github.workspace }}/course/Gemfile
+          JEKYLL_ENV: production
+        run: bundle exec jekyll build --trace
+
+      - name: Upload Pages artifact
+        if: inputs.deploy
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: course/_site
+
+  deploy:
+    if: inputs.deploy
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
