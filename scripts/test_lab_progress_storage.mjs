@@ -605,7 +605,7 @@ await test(
 await test(
   'el instructor conserva progreso aislado del participante',
   async () => {
-    const courseId = 'terrgcpint';
+    const courseId = 'cursoejemplo';
     const labId = 'l001';
 
     const participantKey =
