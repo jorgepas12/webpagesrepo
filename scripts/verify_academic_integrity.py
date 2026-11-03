@@ -33,9 +33,20 @@ def comparable(text, migrated):
     return [x for x in [*fm, *body.splitlines()] if x.strip()]
 
 def main():
-    labs = sorted(ROOT.glob("labs/lab[0-9]*/lab[0-9]*.md"))
-    if not labs:
+    lab_dirs = sorted(
+        (path for path in (ROOT / "labs").iterdir()
+         if path.is_dir() and re.fullmatch(r"lab[1-9][0-9]*", path.name)),
+        key=lambda path: int(path.name[3:]),
+    )
+    if not lab_dirs:
         raise ValueError("No se encontraron labs")
+    numbers = [int(path.name[3:]) for path in lab_dirs]
+    if numbers != list(range(1, len(numbers) + 1)):
+        raise ValueError("Secuencia de laboratorios incompleta")
+    labs = [directory / (directory.name + ".md") for directory in lab_dirs]
+    for file in labs:
+        if not file.is_file():
+            raise ValueError(f"Falta archivo principal de laboratorio: {file}")
     for file in labs:
         path = file.relative_to(ROOT).as_posix()
         original = subprocess.run(["git", "show", "HEAD:" + path],
