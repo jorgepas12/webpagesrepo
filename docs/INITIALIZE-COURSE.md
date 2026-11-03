@@ -1,16 +1,40 @@
-# Inicializador de identidad de curso
+# Inicialización de un curso nuevo para Lab Control
 
-En un repositorio nuevo creado a partir de la plantilla:
+Desde un repositorio creado con la plantilla `webpagesrepo`, **antes** de crear Labs:
 
 ```bash
 node scripts/init_course.mjs
 ```
 
-Introduce nombre y descripción. El script propone un código compacto (opción B) y un Tracking ID en minúsculas; permite editarlos antes de confirmar. Ejemplo: Terraform en Google Cloud Intermedio → `TFGCPINT` / `tfgcpint`.
+El comando propone un código y Tracking ID compactos según el nombre, permite ajustarlos y crea `course.identity.json` y una entrada en `_data/courses.yml`. No sobrescribe una identidad existente. Si el curso ya existe, no ejecutar el inicializador: usar [adopción/migración](COURSE-TEMPLATE-WORKFLOWS.md).
 
-Genera `course.identity.json` como fuente canónica y agrega una entrada sin Labs a `_data/courses.yml`. No sobrescribe la identidad existente; no ejecutes el inicializador en cursos ya publicados.
+Crear prácticas:
 
-**Limitación de esta primera fase:** comprueba formato y duplicados en el YAML local, no unicidad contra los cursos de Lab Control. La sincronización y comprobación global corresponden a `jorgepas12/lab-control#126`. `scripts/create_labs.sh` utiliza automáticamente el Tracking ID de `course.identity.json` cuando existe; el segundo argumento es opcional, y se rechaza si contradice la identidad canónica. Los repositorios antiguos sin `course.identity.json` conservan su funcionamiento anterior.
+```bash
+bash scripts/create_labs.sh 5
+node scripts/generate_lab_manifest.mjs --all
+node scripts/generate_course_catalog.mjs
+node scripts/test_lab_manifest.mjs
+node scripts/test_course_catalog.mjs
+bundle exec jekyll build --trace
+```
 
-El archivo de ejemplo original de la plantilla en `_data/courses.yml` no se borra automáticamente. Antes de publicar un curso nuevo, revisa las entradas de ejemplo.
-\n## Registro automático en Lab Control (fase #126)\n\nUna vez disponible el endpoint en la API, desde Git Bash:\n\n```bash\nexport LABCONTROL_API_URL=https://labcontrol.superwebapp.com\nexport LABCONTROL_AUTHORING_SYNC_TOKEN='TOKEN_LCAT_DEL_ENTORNO'\nnode scripts/sync_course_identity.mjs\n```\n\nEl comando lee `course.identity.json`, no crea Labs, y no imprime el token. Un segundo registro con el mismo par de identificadores debe reutilizar el curso existente. El endpoint aún no está desplegado; **no ejecutar contra producción hasta aprobar y desplegar Lab Control #134**.\n
+`create_labs.sh` reutiliza el `trackingId` de `course.identity.json`, rechaza uno distinto y no debe sobrescribir Labs existentes. Revisa que el YAML de ejemplo de la plantilla no se publique como curso real y que el `url`, `baseurl`, `repository` y `labcontrol_api_url` de `_config.yml` correspondan al destino.
+
+## Registro de identidad en Lab Control
+
+Si el API y el token de authoring ya están configurados para el ambiente, el script `sync_course_identity.mjs` consume el endpoint `POST /authoring-sync/courses/identity`; no crea Labs. La disponibilidad efectiva y permisos deben verificarse antes de invocarlo contra producción.
+
+```bash
+export LABCONTROL_API_URL=https://labcontrol.superwebapp.com
+# Obtener LABCONTROL_AUTHORING_SYNC_TOKEN por canal seguro; no imprimirlo.
+node scripts/sync_course_identity.mjs
+```
+
+Este script exige que la variable `LABCONTROL_AUTHORING_SYNC_TOKEN` ya esté definida (prefijo `lcat_`). El endpoint reconoce una identidad existente con el mismo tracking ID y código; no debe producir duplicados. Una prueba de conectividad no autoriza por sí sola modificar el catálogo de un curso.
+
+## Publicación y vínculo de URL
+
+Publica GitHub Pages, comprueba el catálogo `labcontrol/<trackingId>/course.json` y sus snapshots, y después vincula el curso mediante [challenge/proof en `.well-known`](COURSE-LINK-WELL-KNOWN.md). **No copiar el proof de Terraform ni de ninguna otra URL**.
+
+El modo práctica del instructor y el protocolo de actualización de cursos existentes se documentan en [workflows de plantilla](COURSE-TEMPLATE-WORKFLOWS.md).

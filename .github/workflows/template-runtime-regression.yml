@@ -1,0 +1,70 @@
+name: Template runtime regression
+
+on:
+  pull_request:
+    paths:
+      - 'assets/js/**'
+      - '_layouts/default.html'
+      - 'scripts/**'
+      - 'docs/**'
+      - 'EXISTING-COURSE-MIGRATION.md'
+      - '.github/workflows/template-runtime-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate syntax
+        run: |
+          node --check assets/js/lab-demo-context.js
+          node --check assets/js/lab-progress.js
+          node --check assets/js/lab-tracker.js
+          node --check scripts/update_existing_course_runtime.mjs
+          node --check scripts/write_course_link_proof.mjs
+          python -m py_compile scripts/migrate_existing_course.py
+          bash -n scripts/create_labs.sh
+      - name: Instructor practice and progress regressions
+        run: |
+          node scripts/test_instructor_demo.mjs
+          node scripts/test_instructor_demo_links.mjs
+          node scripts/test_instructor_demo_navigation.mjs
+          node scripts/test_instructor_demo_return.mjs
+          node scripts/test_instructor_demo_tracker.mjs
+          node scripts/test_instructor_demo_ui.mjs
+          node scripts/test_lab_progress_storage.mjs
+          node scripts/test_lab_tracker.mjs
+      - name: New and existing course regressions
+        run: |
+          node --test scripts/test_update_existing_course_runtime.mjs
+          node --test scripts/test_write_course_link_proof.mjs
+          node scripts/test_init_course.mjs
+          node scripts/test_adopt_existing_course.mjs
+          node scripts/test_sync_course_identity.mjs
+          node scripts/test_lab_manifest.mjs
+          node scripts/test_course_catalog.mjs
+          node scripts/test_authoring_flow.mjs
+          python scripts/test_migrate_existing_course.py
+
+  jekyll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - name: Build template with Jekyll
+        env:
+          JEKYLL_ENV: production
+        run: bundle exec jekyll build --trace

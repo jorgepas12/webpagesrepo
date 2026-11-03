@@ -39,6 +39,7 @@ class MigrationTest(unittest.TestCase):
             source.write_text(FIXTURE, encoding="utf-8")
             (template/"scripts").mkdir(parents=True)
             (template/"scripts/dummy.mjs").write_text("// tool", encoding="utf-8")
+            (root/"_config.yml").write_text("title: Demo\\ninclude:\\n  - assets\\n", encoding="utf-8")
             original = source.read_bytes()
             dry = self.run_migration(root, template)
             self.assertEqual(dry.returncode, 0, dry.stderr)
@@ -55,6 +56,10 @@ class MigrationTest(unittest.TestCase):
             )
             self.assertIn("next_lab_id: 2", (root/"_data/labcontrol-identities.yml").read_text())
             self.assertTrue((root/"scripts/dummy.mjs").exists())
+            config = (root/"_config.yml").read_text(encoding="utf-8")
+            self.assertIn("  - .well-known", config)
+            self.assertIn("  - assets", config)
+            self.assertIn("title: Demo", (root/".migration-backup-labcontrol/_config.yml").read_text(encoding="utf-8"))
 
     def test_does_not_overwrite_existing_tracking(self):
         with tempfile.TemporaryDirectory() as d:
