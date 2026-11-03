@@ -119,3 +119,7 @@ Para vincular la URL ver [`.well-known` y challenge](COURSE-LINK-WELL-KNOWN.md).
 ## F. Validación de IDs antes de generar catálogo
 
 Ejecutar `node scripts/repair_step_ids.mjs --check` antes de publicar. Si falla por IDs duplicados, saltos o desorden, ejecutar el dry-run `node scripts/repair_step_ids.mjs`, revisar el impacto en revisiones congeladas/progreso, y sólo entonces considerar `--apply`. Ver [procedimiento de reparación de Steps](STEP-ID-REPAIR.md). No hay renumeración automática durante GitHub Actions.
+
+## G. Autocorrección al hacer push
+
+En `main`, `pages.yml` inserta/corrige automáticamente IDs faltantes, duplicados o saltos **sólo si no hay conexión de sincronización Lab Control configurada**. El bot confirma los cambios en GitHub y después el mismo workflow publica el catálogo. Si hay vínculo de sincronización, hay revisión manual obligatoria para evitar daño a progreso histórico. Ver [automatización de Step IDs](STEP-ID-REPAIR.md).
