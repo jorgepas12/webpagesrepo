@@ -40,7 +40,7 @@ git diff --check
 git diff -- labs/
 ```
 
-El `--apply` realiza backup de todos los Markdown modificados **antes de escribir** bajo `.step-id-backup/<timestamp>/labs... ` (no versionar). Un segundo `--apply` sin problemas no realiza cambios ni genera otro respaldo.
+El `--apply` realiza backup de todos los Markdown modificados **antes de escribir** bajo `.step-id-backup/<timestamp>/labN/labN.md` (no versionar). Un segundo `--apply` sin problemas no realiza cambios ni genera otro respaldo.
 
 **Importante:** la herramienta renumera todos los Steps dentro de cada Lab según su posición actual. Si un ID histórico correcto aparece después de un salto, puede cambiar también su valor. Revisa cuidadosamente el diff y el impacto en `StepProgress`; esta es una herramienta de reparación editorial, no una migración de historial de la base de datos.
 
