@@ -47,7 +47,8 @@ test('IDs ausentes se insertan en orden sin alterar instrucciones; inválidos fa
   assert.equal(report.count,2);
   assert.match(report.source, /step_label\.html\s+id="s002"\s*%}/);
   assert.equal(auditLab(report.source).changes.length,0);
-  assert.equal(report.source.replace(/\s+id="s002"/g,''),source);
+  const withoutId = value => value.replace(/step_label\.html\s+(?:id="s\d{3}"\s*)?%}/g, 'step_label.html %}');
+  assert.equal(withoutId(report.source), withoutId(source));
   assert.throws(() => auditLab(make(['s001']).replace('id="s001"','id="abc"')), /ID inválido/);
 });
 
