@@ -4,7 +4,7 @@
 
 Cada `step_id` debe ser único **dentro de un Lab**; puede repetirse entre Labs porque el contexto también incorpora `course_id` y `lab_id`. En el flujo editorial actual conviene usar una secuencia consecutiva `s001`, `s002`, etc., en orden de aparición. `generate_lab_manifest.mjs` ya **rechaza duplicados** y no debe modificar contenido de forma silenciosa.
 
-La herramienta `scripts/repair_step_ids.mjs` audita la secuencia, muestra líneas afectadas y, **únicamente con `--apply`**, cambia los atributos `id="sNNN"` de los includes `step_label.html`. No reescribe las instrucciones, comandos, tareas ni encabezados. Omite Labs declarados `tracking: false`, no cuenta ejemplos dentro de comentarios HTML y rechaza IDs ausentes o mal formados.
+La herramienta `scripts/repair_step_ids.mjs` audita la secuencia, muestra líneas afectadas y, **únicamente con `--apply`**, cambia los atributos `id="sNNN"` de los includes `step_label.html`. No reescribe las instrucciones, comandos, tareas ni encabezados. Omite Labs declarados `tracking: false`, no cuenta ejemplos dentro de comentarios HTML inserta IDs ausentes al aplicar reparación y rechaza IDs mal formados.
 
 ## Auditoría de curso (sin escribir)
 
@@ -44,9 +44,13 @@ El `--apply` realiza backup de todos los Markdown modificados **antes de escribi
 
 **Importante:** la herramienta renumera todos los Steps dentro de cada Lab según su posición actual. Si un ID histórico correcto aparece después de un salto, puede cambiar también su valor. Revisa cuidadosamente el diff y el impacto en `StepProgress`; esta es una herramienta de reparación editorial, no una migración de historial de la base de datos.
 
-## Integración con plantilla y CI
+## Integración con plantilla y GitHub Actions
 
-El template `webpagesrepo` ejecuta `--check` en el workflow de PR y antes de generar manifests para Pages. **Nunca** ejecuta `--apply` en CI, de modo que los errores no quedan ocultos ni alteran el contenido publicado.
+En `push` a `main`, el workflow de Pages ejecuta pruebas del reparador y audita antes de generar manifests. Si detecta duplicados, saltos o IDs ausentes y **no hay configuración de sincronización a Lab Control** (`vars.LABCONTROL_API_URL` o `secrets.LABCONTROL_SYNC_TOKEN`), ejecuta `--apply`, valida, registra los Markdown corregidos mediante `github-actions[bot]` y empuja el commit a `main` antes de compilar el catálogo/Jekyll. El push realizado con `GITHUB_TOKEN` no dispara otro run; el mismo job construye la versión reparada.
+
+Si alguna configuración de sincronización con Lab Control está presente, el pipeline **no renumera automáticamente**: falla con un mensaje para intervención humana y protección de revisiones/progreso. Se previenen pushes concurrentes comprobando que la punta remota sigue siendo el commit del workflow; también se requiere autorización de `contents: write` y que la rama permita push del bot. Si el servidor bloquea al bot o su push, el job falla sin publicar y debe revisarse la protección de rama.
+
+En PR se ejecutan tests y `--check` sin modificar archivos. Las reparaciones no cambian contenido académico, pero sí identidades de Steps. La automatización **no migra ni reinicia** progreso en Lab Control.
 
 Para propagar a un curso ya adaptado se copia exclusivamente `scripts/repair_step_ids.mjs`, o se realiza una integración técnica revisada; no copiar `course.identity.json`, pruebas `.well-known`, ni datos académicos de otros cursos.
 
@@ -58,7 +62,7 @@ Comparación de `Netec-Mx/CKA/main`:
 - Labs 2, 3, 4, 5, 6, 9, 11 y 12: saltos por un último `s045` fuera de secuencia.
 - Labs 7, 10, 13, 14 y 15: secuencias consecutivas.
 
-A diferencia de un error genérico de script, estos problemas están en los identificadores Markdown de CKA. Los 15 Labs deben auditarse; los cambios se proponen de forma precisa por línea. Revisar historial antes de modificar IDs. El repositorio CKA no está autorizado para escritura desde la conexión de ChatGPT actual; los cambios de su curso se aplican desde Git Bash con permisos propios, en una rama separada.
+A diferencia de un error genérico de script, estos problemas están en los identificadores Markdown de CKA. Los 15 Labs deben auditarse; los cambios se proponen de forma precisa por línea. Revisar historial antes de modificar IDs. El repositorio CKA no está autorizado para escritura desde la conexión de ChatGPT actual; los cambios de su curso se aplican desde Git Bash con permisos propios, por Git Bash con permisos propios; las modificaciones ya se incorporaron directamente en `main` según la decisión del mantenedor.
 
 ## Tests
 
