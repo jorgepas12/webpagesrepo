@@ -1,6 +1,6 @@
 # Central validation and optional publication for existing Netec Jekyll courses.
 # During development this checks out the feature branch; pin a release SHA/tag before production.
-name: LabControl central course pipeline
+name: LabControl central course validation
 
 on:
   workflow_call:
@@ -9,11 +9,6 @@ on:
         description: Stable tracking ID already present in the course's Jekyll catalog
         required: true
         type: string
-      deploy:
-        description: Publish to GitHub Pages after validation (enable only when replacing existing Pages workflow)
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -23,8 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pages: write
-      id-token: write
     steps:
       - name: Checkout course repository
         uses: actions/checkout@v4
@@ -98,23 +91,3 @@ jobs:
           JEKYLL_ENV: production
         run: bundle exec jekyll build --trace
 
-      - name: Upload Pages artifact
-        if: inputs.deploy
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: course/_site
-
-  deploy:
-    if: inputs.deploy
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
