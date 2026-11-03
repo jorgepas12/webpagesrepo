@@ -58,3 +58,26 @@ Confirma que `labcontrol/mi-curso/course.json` contenga `content/l001.json`, que
 
 ## Ejemplo validado
 El curso Terraform GCP se integró en producción con 13 prácticas y revisión `v1.0.0`, después de resolver correctamente las rutas de snapshots y sincronización.
+
+
+## Actualización de cursos que ya fueron migrados
+
+No ejecutar nuevamente `migrate_existing_course.py` si ya hay `course_id`, `lab_id`, Task/Step IDs e historial de seguimiento. El script de migración está diseñado para una sola adaptación inicial y se detiene al detectar identidades existentes.
+
+Para actualizar únicamente el JavaScript compartido y la carga de la vista de prueba del instructor, usar el nuevo actualizador de la plantilla, en **dry-run** por defecto:
+
+```bash
+node scripts/update_existing_course_runtime.mjs \
+  --target "/ruta/al/repositorio/curso-ya-migrado"
+
+node scripts/update_existing_course_runtime.mjs \
+  --target "/ruta/al/repositorio/curso-ya-migrado" --apply
+```
+
+Este procedimiento conserva los Labs, sus instrucciones, IDs y la revisión del curso en Lab Control. Realiza copia de seguridad de los archivos técnicos anteriores en `.labcontrol-template-backup/` y agrega esa carpeta a `.gitignore` del destino. El layout debe tener un loader reconocible de `lab-progress.js`; de lo contrario, requiere integración manual.
+
+### .well-known y vinculación
+
+El migrador original ahora contempla la inclusión de `.well-known` en `_config.yml` sin tomar ningún archivo de prueba de otro curso. El proof se emite exclusivamente desde Lab Control para la URL/tracking ID/actor correspondientes; consulta [guía de verificación](docs/COURSE-LINK-WELL-KNOWN.md). No pegar ni reutilizar el proof de `TRFRM_GCP_INT`.
+
+Ver el [procedimiento maestro para tres escenarios](docs/COURSE-TEMPLATE-WORKFLOWS.md).
