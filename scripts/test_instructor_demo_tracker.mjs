@@ -40,7 +40,7 @@ const steps = [{
 const root = {
   dataset: {
     tracking: "true",
-    courseId: "terrgcpint",
+    courseId: "cursoejemplo",
     labId: "l001",
     trackingApi: "https://example.test/api"
   },
