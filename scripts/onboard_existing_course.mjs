@@ -93,6 +93,8 @@ async function main() {
   run(process.execPath, ['scripts/generate_course_catalog.mjs'], target);
   run(process.execPath, ['scripts/test_lab_manifest.mjs'], target);
   run(process.execPath, ['scripts/test_course_catalog.mjs'], target);
+  run(process.platform === 'win32' ? 'python' : 'python3', ['scripts/verify_academic_integrity.py'], target);
+  run(process.execPath, ['scripts/repair_step_ids.mjs', '--check'], target);
   console.log('Migración técnica aplicada y catálogo generado.');
   console.log('SIGUIENTE: revisar git diff, crear course.identity.json, actualizar workflow y validar Jekyll antes del push.');
 }
