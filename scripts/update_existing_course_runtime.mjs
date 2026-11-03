@@ -73,6 +73,18 @@ export async function run(args = process.argv.slice(2)) {
     if (!same) candidates.push({ rel, from, to, exists });
   }
   if (currentLayout !== newLayout) candidates.push({ rel: layoutPath, to: join(target, layoutPath), exists: true, content: newLayout });
+  // Un curso antiguo puede no tener el ignore nuevo de la plantilla.
+  const ignoreRel = '.gitignore';
+  const ignoreTo = join(target, ignoreRel);
+  const hasIgnore = await existingFile(ignoreTo);
+  const originalIgnore = hasIgnore ? await readFile(ignoreTo, 'utf8') : '';
+  if (!originalIgnore.split(/\r?\n/).some(line => line.trim() === '.labcontrol-template-backup/')) {
+    const updatedIgnore = originalIgnore
+      + (originalIgnore && !originalIgnore.endsWith('\n') ? '\n' : '')
+      + '\n# Backups de actualización técnica de Lab Control\n.labcontrol-template-backup/\n';
+    candidates.push({ rel: ignoreRel, to: ignoreTo, exists: hasIgnore, content: updatedIgnore });
+  }
+
   console.log('Destino:', target);
   console.log('Modo:', args.includes('--apply') ? 'APPLY' : 'DRY RUN');
   for (const c of candidates) console.log((c.exists ? 'Actualizar ' : 'Agregar ') + c.rel);
