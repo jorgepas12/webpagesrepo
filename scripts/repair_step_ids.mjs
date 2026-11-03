@@ -11,6 +11,7 @@
  */
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 
 const STEP_INCLUDE = /{%\s*include\s+step_label\.html\b[\s\S]*?%}/g;
@@ -123,7 +124,7 @@ export async function run(args = process.argv.slice(2)) {
   return 0;
 }
 
-const invoked = process.argv[1] && resolve(process.argv[1]).replaceAll('\\', '/') === new URL(import.meta.url).pathname;
+const invoked = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (invoked) {
   run().then(code => { process.exitCode = code; }).catch(error => {
     console.error('Error:', error.message);
