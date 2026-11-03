@@ -34,6 +34,18 @@ jobs:
           node scripts/test_sync_lab_manifests.mjs
           node scripts/test_course_catalog.mjs
           node scripts/test_lab_id_registry.mjs
+          node scripts/test_instructor_demo.mjs
+          node scripts/test_instructor_demo_links.mjs
+          node scripts/test_instructor_demo_navigation.mjs
+          node scripts/test_instructor_demo_return.mjs
+          node scripts/test_instructor_demo_tracker.mjs
+          node scripts/test_instructor_demo_ui.mjs
+          node scripts/test_lab_progress_storage.mjs
+          node scripts/test_lab_tracker.mjs
+          node --test scripts/test_update_existing_course_runtime.mjs
+          node --check assets/js/lab-demo-context.js
+          node --check scripts/update_existing_course_runtime.mjs
+          node --check scripts/write_course_link_proof.mjs
           node scripts/test_authoring_flow.mjs
           node --check scripts/generate_lab_manifest.mjs
           node --check scripts/generate_course_catalog.mjs
