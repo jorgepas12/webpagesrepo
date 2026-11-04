@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'scripts/adopt_course_complete.mjs'
+      - 'scripts/migrate_existing_course.py'
+      - 'scripts/update_existing_course_runtime.mjs'
+      - 'scripts/test_minimal_course_onboarding.mjs'
       - 'scripts/bootstrap_existing_course.sh'
       - 'scripts/update_existing_course_layouts.mjs'
       - 'scripts/verify_course_runtime.mjs'
@@ -33,6 +36,12 @@ jobs:
           node --check scripts/update_existing_course_layouts.mjs
           node --check scripts/verify_course_runtime.mjs
           bash -n scripts/bootstrap_existing_course.sh
+
+      - name: Test new Jekyll course with no LabControl and no copied scripts
+        run: |
+          python3 -m unittest scripts/test_migrate_existing_course.py
+          node --test scripts/test_minimal_course_onboarding.mjs
+          node --test scripts/test_update_existing_course_runtime.mjs
 
       - name: Download clean CKA course fixture
         run: git clone --depth 1 https://github.com/Netec-Mx/CKA-Priv-.git "$RUNNER_TEMP/cka-adoption"
