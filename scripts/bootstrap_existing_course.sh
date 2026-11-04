@@ -4,8 +4,8 @@
 # removes the temporary clone. Dry-run unless --apply is explicitly passed.
 set -euo pipefail
 
-if [[ ! -d .git || ! -d labs || ! -f _data/courses.yml ]]; then
-  echo "ERROR: Run from the root of a Jekyll course repository" >&2
+if [[ ! -d .git || ! -d labs ]]; then
+  echo "ERROR: Run from the root of a Git course repository with a labs directory" >&2
   exit 1
 fi
 

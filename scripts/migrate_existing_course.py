@@ -23,11 +23,18 @@ TASK_ASSIGN = re.compile(r"{%\s*assign\s+tracking_task_id\s*=")
 def prepare_lab(path: Path, course_id: str, number: int) -> tuple[str, int, int]:
     original = path.read_text(encoding="utf-8")
     match = FRONT.match(original)
-    if not match:
-        raise ValueError(f"{path}: falta YAML frontmatter válido")
-    fm = match.group(1)
-    body = original[match.end():]
+    # Plain Markdown is valid input: add minimal Jekyll front matter once.
+    # Preserve every line of the original instructions verbatim.
+    fm = match.group(1) if match else ""
+    body = original[match.end():] if match else original
     additions = []
+    if not re.search(r"(?m)^layout\s*:", fm):
+        additions.append("layout: lab\n")
+    if not re.search(r"(?m)^title\s*:", fm):
+        title = next((line[2:].strip() for line in body.splitlines()
+                      if line.startswith("# ") and line[2:].strip()), f"Práctica {number}")
+        escaped = title.replace("\\", "\\\\").replace('"', '\\"')
+        additions.append(f'title: "{escaped}"\n')
     expected = {"course_id": course_id, "lab_id": f"l{number:03d}",
                 "tracking": "true", "lab_number": str(number), "position": str(number)}
     for field, desired in expected.items():
@@ -40,6 +47,8 @@ def prepare_lab(path: Path, course_id: str, number: int) -> tuple[str, int, int]
                 raise ValueError(f"{path}: {field}={actual!r}, se esperaba {desired!r}")
         else:
             additions.append(f"{field}: {desired}\n")
+    if not re.search(r"(?m)^permalink\s*:", fm):
+        additions.append(f"permalink: /lab{number}/lab{number}/\n")
     header = "".join(additions)
     output_body = []
     task_no = 0

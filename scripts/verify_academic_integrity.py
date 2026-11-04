@@ -16,24 +16,23 @@ META = re.compile(r"^(?:course_id|lab_id|tracking|position|lab_number):\s*")
 TASK = re.compile(r'^\s*{%\s*assign\s+tracking_task_id\s*=\s*["\']t\d{3}["\']\s*%}\s*$')
 STEP = re.compile(r'(\{%\s*include\s+step_label\.html)\s+id=["\']s\d{3}["\']')
 
-def comparable(text, migrated):
+def comparable(text, migrated, original_fields=None):
     text = text.replace("\r\n", "\n")
     match = FRONT.match(text)
-    if not match:
-        raise ValueError("Falta frontmatter")
-    fm = match.group(1).splitlines()
+    fm = match.group(1).splitlines() if match else []
+    body = text[match.end():] if match else text
+    original_fields = original_fields or set()
+    technical = {"course_id", "lab_id", "tracking", "position", "lab_number"}
     if migrated:
-        fm = [x for x in fm if not META.match(x)]
-    else:
-        # lab_number may predate migration; compare academic content, not this field.
-        fm = [x for x in fm if not re.match(r"^lab_number:\\s*", x)]
-    body = text[match.end():]
-    if migrated:
+        allowed_generated = {"permalink", "layout", "title"} - original_fields
+        fm = [line for line in fm
+              if (line.split(":", 1)[0].strip() not in technical | allowed_generated)]
         body = STEP.sub(r"\1", body)
         body = "\n".join(line for line in body.splitlines() if not TASK.match(line))
-    # Migration adds blank lines around task assignments, but academic
-    # content (all nonblank lines) must remain byte-for-byte equivalent.
-    return [x for x in [*fm, *body.splitlines()] if x.strip()]
+    else:
+        # lab_number is a legacy technical field, not academic text.
+        fm = [line for line in fm if not re.match(r"^lab_number:\s*", line)]
+    return [line for line in [*fm, *body.splitlines()] if line.strip()]
 
 def main():
     lab_dirs = sorted(
@@ -56,7 +55,12 @@ def main():
                                   text=True, capture_output=True, encoding="utf-8")
         if original.returncode:
             raise ValueError(path + ": no existe en HEAD")
-        if comparable(original.stdout, False) != comparable(file.read_text(encoding="utf-8"), True):
+        old_fm = FRONT.match(original.stdout)
+        old_fields = {line.split(":", 1)[0].strip()
+                      for line in old_fm.group(1).splitlines()} if old_fm else set()
+        if comparable(original.stdout, False) != comparable(
+            file.read_text(encoding="utf-8"), True, old_fields
+        ):
             raise ValueError(path + ": las instrucciones académicas cambiaron")
         print("OK contenido:", path)
     print(f"INTEGRIDAD ACADÉMICA OK: {len(labs)} Labs; texto sin modificaciones.")

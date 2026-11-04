@@ -13,7 +13,11 @@
 
 Prerequisitos en el equipo: `git`, `node` 24, `python` 3 y acceso a Internet; en Git Bash/Linux, `bash`, `curl` y `git`; en PowerShell, PowerShell 5.1+ y `git`. Para probar localmente Jekyll se necesitan Ruby/Bundler; en el build CI los prepara Actions.
 
-El curso ya debe contener `.git`, `labs/lab1/lab1.md` ... `labs/labN/labN.md`, `_data/courses.yml` con la clave `trackingId` acordada, `_config.yml`, layouts Jekyll y los includes `step_label.html`. **No inventar el código y el tracking ID:** se acuerdan antes de adoptar y no se cambian cuando LabControl tiene revisiones.
+**Estructura mínima requerida:** repositorio Git con `origin` apuntando a GitHub y prácticas académicas identificables como `labs/lab1/lab1.md`, `labs/lab2/lab2.md`, etc. Las prácticas deben identificar pasos mediante `{% include step_label.html %}`; no es obligatorio que exista el archivo real `_includes/step_label.html`: lo aporta la incorporación. Los labs pueden carecer de frontmatter y el migrador agregará el mínimo necesario, conservando el texto de las instrucciones.
+
+**El curso NO necesita previamente** `_config.yml`, `_data/courses.yml`, `_layouts/`, `_includes/`, `Gemfile`, `index.md` ni `pages.yml`. El scaffold `scripts/scaffold_missing_jekyll.mjs` crea solamente los faltantes durante la incorporación, infiere `url`, `repository` y `baseurl` desde `git remote origin`; preserva archivos existentes. Si la plantilla tiene layouts o catálogos incompatibles, detiene el proceso para revisión en vez de sobrescribirlos o alterar contenidos. No descarga ni copia scripts o JS técnicos dentro del repo.
+
+**Límite académico:** si las prácticas no tienen marcadores de paso reconocibles, hay que identificar sus pasos antes de asignar IDs. Esto no debe resolverse inventando límites de tareas. El mismo procedimiento aplica a un curso nuevo con solo `labs/` y a uno antiguo con su propia estructura. `trackingId` y `code` deben definirse antes del primer registro en LabControl y no renumerarse posteriormente.
 
 Primero terminar y confirmar cambios académicos:
 
