@@ -28,7 +28,7 @@ export function prepareLayout(html) {
   if (!html.includes(progressScript)) {
     // Other Jekyll templates may not include LabControl loaders at all.
     // Only insert into a recognized HTML layout; never replace course content.
-    const bodyEnd = /<\\/body\\s*>/i;
+    const bodyEnd = /<\/body\s*>/i;
     if (!bodyEnd.test(html)) throw Error('No se encontró cierre </body> ni loader de progreso en layout.');
     return html.replace(bodyEnd, demoScript + '\\n  ' + progressScript + '\\n  </body>');
   }
