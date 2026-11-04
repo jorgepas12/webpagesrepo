@@ -40,3 +40,9 @@ El ejemplo `docs/examples/cka-labcontrol-validation.yml` ahora genera el sitio c
 La propuesta `docs/examples/cka-pages-central-proposed.yml` es una **alternativa completa** al workflow Pages existente y no debe instalarse junto con otro workflow de publicación. Para producción: aprobar los tests de empaquetado, fijar el workflow central mediante SHA/tag protegido y cambiar en un único commit el workflow existente. Solo el job final de despliegue solicita `pages: write` e `id-token: write`.
 
 No activar sincronización autenticada desde workflows hasta verificar endpoint, privilegios y política de revisiones congeladas. No reutilizar pruebas `.well-known` de otros cursos.
+
+## Prueba de empaquetado confirmada
+
+- Netec-Mx/CKA-Priv-: [run #41750364175](https://github.com/Netec-Mx/CKA-Priv-/actions/runs/41750364175), commit `7b23d2c`, rama `test/labcontrol-onboarding`: `success`.
+- Jobs aprobados: `central-validation / build` y `package-pages`. Dos artefactos producidos; no hubo despliegue.
+- Para publicar: sustituir el workflow existente del curso en un único cambio controlado, únicamente después de fijar una versión estable del central y verificar el vínculo LabControl. Mantener una sola ruta de despliegue.
