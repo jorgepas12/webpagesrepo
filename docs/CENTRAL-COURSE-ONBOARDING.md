@@ -20,10 +20,11 @@
 - Integridad de instrucciones principales: 8/8, sin cambios académicos.
 - IDs secuenciales y únicos: 448/448.
 - Jekyll build: correcto.
-- **Aún no probado:** nuevo reusable workflow en GitHub Actions, vinculación a LabControl, runtime participante e instructor, sincronización contra API.
+- **GitHub Actions validado:** run #41748872872 en Netec-Mx/CKA-Priv-, rama test/labcontrol-onboarding, commit eef0d11: success, 44 segundos, sin despliegue.
+- **Aún no probado:** vinculación a LabControl, runtime participante e instructor, sincronización contra API.
 
 ## Pendientes bloqueantes
-1. Testear caller reusable workflow con `deploy: false` y permisos mínimos en un branch seguro del curso.
+1. COMPLETADO: caller reusable workflow de solo validación con permisos `contents: read`, probado en rama segura.
 2. Reemplazar `ref` de rama de desarrollo por release SHA/tag inmutable.
 3. Implementar bootstrap mínimo y distribución de archivos técnicos sin copiar toda la plantilla.
 4. Automatizar identidad y rollback/restore de un fallo parcial.
