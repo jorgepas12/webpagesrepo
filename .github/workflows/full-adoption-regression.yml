@@ -1,0 +1,94 @@
+name: Existing course full adoption regression
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/adopt_course_complete.mjs'
+      - 'scripts/bootstrap_existing_course.sh'
+      - 'scripts/update_existing_course_layouts.mjs'
+      - 'scripts/verify_course_runtime.mjs'
+      - 'scripts/verify_academic_integrity.py'
+      - 'docs/examples/standard-course-pages.yml'
+      - '.github/workflows/full-adoption-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  adopt-cka-fixture:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout webpagesrepo candidate
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Syntax checks
+        run: |
+          node --check scripts/adopt_course_complete.mjs
+          node --check scripts/update_existing_course_layouts.mjs
+          node --check scripts/verify_course_runtime.mjs
+          bash -n scripts/bootstrap_existing_course.sh
+
+      - name: Download clean CKA course fixture
+        run: git clone --depth 1 https://github.com/Netec-Mx/CKA-Priv-.git "$RUNNER_TEMP/cka-adoption"
+
+      - name: Test no-op dry run
+        run: |
+          node scripts/adopt_course_complete.mjs \
+            --target "$RUNNER_TEMP/cka-adoption" \
+            --tracking-id ckapriv \
+            --code CKA_PRIV \
+            --name "Administración, despliegue y preparación para CKA" \
+            --description "Curso de administración y preparación CKA con 8 prácticas de Kubernetes."
+          test -z "$(git -C "$RUNNER_TEMP/cka-adoption" status --porcelain)"
+
+      - name: Apply adoption to disposable clone
+        run: |
+          node scripts/adopt_course_complete.mjs \
+            --target "$RUNNER_TEMP/cka-adoption" \
+            --tracking-id ckapriv \
+            --code CKA_PRIV \
+            --name "Administración, despliegue y preparación para CKA" \
+            --description "Curso de administración y preparación CKA con 8 prácticas de Kubernetes." \
+            --apply
+
+      - name: Verify identity, runtime and public files
+        env:
+          COURSE_DIR: ${{ runner.temp }}/cka-adoption
+        run: |
+          node scripts/verify_course_runtime.mjs "$COURSE_DIR"
+          node scripts/repair_step_ids.mjs --check --root "$COURSE_DIR"
+          node -e 'const f=require("node:fs"),p=process.env.COURSE_DIR;const x=JSON.parse(f.readFileSync(p+"/course.identity.json"));if(x.code!=="CKA_PRIV"||x.trackingId!=="ckapriv")process.exit(1);const c=JSON.parse(f.readFileSync(p+"/labcontrol/ckapriv/course.json"));if(c.labs.length!==8)process.exit(1);'
+          test -f "$COURSE_DIR/.github/workflows/pages.yml"
+          git -C "$COURSE_DIR" diff --check
+
+      - name: Setup Ruby and Jekyll
+        uses: ruby/setup-ruby@v1
+        env:
+          BUNDLE_GEMFILE: ${{ runner.temp }}/cka-adoption/Gemfile
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Build adopted CKA site
+        working-directory: ${{ runner.temp }}/cka-adoption
+        env:
+          BUNDLE_GEMFILE: ${{ runner.temp }}/cka-adoption/Gemfile
+        run: bundle exec jekyll build --trace
+
+      - name: Validate published course content
+        env:
+          COURSE_DIR: ${{ runner.temp }}/cka-adoption
+        run: |
+          test -s "$COURSE_DIR/_site/course.identity.json"
+          test -s "$COURSE_DIR/_site/labcontrol/ckapriv/course.json"
+          test -s "$COURSE_DIR/_site/lab1/lab1/index.html"
+          test -s "$COURSE_DIR/_site/assets/js/lab-tracker.js"
+          for n in 1 2 3 4 5 6 7 8; do
+            test -s "$COURSE_DIR/_site/labcontrol/ckapriv/content/$(printf 'l%03d' "$n").json"
+          done

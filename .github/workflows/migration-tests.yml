@@ -5,6 +5,9 @@ on:
     paths:
       - 'scripts/migrate_existing_course.py'
       - 'scripts/test_migrate_existing_course.py'
+      - 'scripts/verify_academic_integrity.py'
+      - 'scripts/test_verify_academic_integrity.py'
+      - 'scripts/onboard_existing_course.mjs'
       - 'EXISTING-COURSE-MIGRATION.md'
       - '.github/workflows/migration-tests.yml'
   workflow_dispatch:
@@ -21,4 +24,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Test migration dry-run and apply
-        run: python scripts/test_migrate_existing_course.py
+        run: |
+          python scripts/test_migrate_existing_course.py
+          python scripts/test_verify_academic_integrity.py
+          node --check scripts/onboard_existing_course.mjs

@@ -1,0 +1,50 @@
+# Copy to the *course* repository's .github/workflows/labcontrol-validation.yml
+# Temporary validation-only caller for the CKA pilot.
+# Never enable Pages deployment while an existing pages.yml deploys main.
+name: Validate CKA with central LabControl tooling
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - test/labcontrol-onboarding
+
+permissions:
+  contents: read
+
+jobs:
+  central-validation:
+    uses: jorgepas12/webpagesrepo/.github/workflows/labcontrol-reusable.yml@feat/central-course-onboarding-cka
+    with:
+      tracking_id: ckapriv
+      upload_site: true
+
+  package-pages:
+    needs: central-validation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Download validated site
+        uses: actions/download-artifact@v4
+        with:
+          name: labcontrol-validated-site
+          path: _site
+
+      - name: Verify compiled catalog and static pages
+        run: |
+          test -s "_site/labcontrol/ckapriv/course.json"
+          test -s "_site/lab1/lab1/index.html"
+          test -s "_site/assets/js/lab-progress.js"
+          test -s "_site/assets/js/lab-tracker.js"
+          for number in 1 2 3 4 5 6 7 8; do
+            lab_id=$(printf 'l%03d' "$number")
+            test -s "_site/labcontrol/ckapriv/content/${lab_id}.json"
+          done
+          node -e 'const fs=require("node:fs");const c=JSON.parse(fs.readFileSync("_site/labcontrol/ckapriv/course.json","utf8"));if(c.courseId!=="ckapriv"||c.labs.length!==8)throw Error("Catálogo CKA incompleto");'
+          echo "OK: catálogo, 8 snapshots, runtime JS y HTML compilados"
+
+      - name: Package as Pages artifact without deployment
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
