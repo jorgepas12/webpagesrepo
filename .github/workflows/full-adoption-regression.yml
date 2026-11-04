@@ -73,6 +73,8 @@ jobs:
         env:
           COURSE_DIR: ${{ runner.temp }}/cka-adoption
         run: |
+          # CKA no longer versions JS or generated JSON: emulate full Pages build.
+          node scripts/prepare_course_build.mjs --target "$COURSE_DIR" --apply
           # Simulate the first course build with central generators, not local scripts.
           (cd "$COURSE_DIR" && node "$GITHUB_WORKSPACE/scripts/generate_lab_manifest.mjs" --all && node "$GITHUB_WORKSPACE/scripts/generate_course_catalog.mjs")
           node scripts/verify_course_runtime.mjs "$COURSE_DIR"

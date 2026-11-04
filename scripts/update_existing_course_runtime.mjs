@@ -32,7 +32,7 @@ export function prepareLayout(html) {
     if (!bodyEnd.test(html)) throw Error('No se encontró cierre </body> ni loader de progreso en layout.');
     return html.replace(bodyEnd, demoScript + '\n  ' + progressScript + '\n  </body>');
   }
-  return html.replace(progressScript, demoScript + '\\n  ' + progressScript);
+  return html.replace(progressScript, demoScript + '\n  ' + progressScript);
 }
 
 async function existingFile(path) {

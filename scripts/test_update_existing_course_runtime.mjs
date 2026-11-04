@@ -12,6 +12,8 @@ const baseLayout = `<!doctype html>
 test('layout carga demo primero, es idempotente', () => {
   const updated = prepareLayout(baseLayout);
   assert.match(updated, /lab-demo-context\.js[\s\S]*lab-progress\.js/);
+  assert.ok(!updated.includes('\\n  <script'), 'No escribir un salto de línea literal en HTML');
+  assert.ok(updated.includes('</script>\n  <script'), 'Separar scripts con salto real');
   assert.equal(prepareLayout(updated), updated);
   const empty = prepareLayout('<html><body><p>sin seguimiento</p></body></html>');
   assert.match(empty, /lab-demo-context\.js[\s\S]*lab-progress\.js/);
