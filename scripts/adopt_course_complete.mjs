@@ -113,6 +113,9 @@ async function commitPreparedFiles() {
 async function main() {
   await assertRepo();
   await assertIdentity();
+  // Validate the academic migration before scaffolding changes any technical files.
+  const needsInitialMigration = !await hasLabTracking();
+  if (needsInitialMigration) python('migrate_existing_course.py',migrationArgs);
   // Prepare only Jekyll infrastructure missing from this repository.
   const missingBase=['_config.yml','_data/courses.yml','_layouts/default.html','_layouts/lab.html','Gemfile'];
   const needsScaffold=(await Promise.all(missingBase.map(p=>exists(join(target,p))))).some(ok=>!ok);
@@ -126,7 +129,6 @@ async function main() {
     throw Error('Identidades parcialmente migradas. Revisar manualmente; no sobrescribir.');
   console.log('Curso:',name,'| Tracking:',trackingId,'| Estado:',migrated?'ya migrado':'sin migrar');
   console.log('Modo:',apply?'APPLY':'DRY RUN');
-  if(!migrated) python('migrate_existing_course.py',migrationArgs);
   node('update_existing_course_runtime.mjs',['--target',target,'--layout-only']);
   node('update_existing_course_layouts.mjs',['--target',target]);
   await installFiles();
