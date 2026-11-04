@@ -134,8 +134,9 @@ async function main() {
   node('repair_step_ids.mjs',['--check','--root',target]);
   node('generate_lab_manifest.mjs',['--all']);
   node('generate_course_catalog.mjs');
-  node('test_lab_manifest.mjs');
-  node('test_course_catalog.mjs');
+  // Tooling tests run in the central checkout; the target intentionally has no scripts/.
+  node('test_lab_manifest.mjs',[],source);
+  node('test_course_catalog.mjs',[],source);
   command('git',['diff','--check']);
   console.log('ADOPCIÓN TÉCNICA LISTA. Validar Jekyll y diff; commit/push solo cuando lo apruebes.');
   console.log('URL prevista: https://netec-mx.github.io/'+(await readFile(join(target,'_config.yml'),'utf8')).match(/baseurl:\s*["']\/([^"']+)/)?.[1]+'/');
