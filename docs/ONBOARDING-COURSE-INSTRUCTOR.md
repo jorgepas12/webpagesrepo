@@ -67,7 +67,7 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/jorgepas12/webpagesrep
 & "$env:TEMP\labcontrol-bootstrap.ps1" -TrackingId "ckapriv" -Code "CKA_PRIV" -Name "Administración, despliegue y preparación para CKA" -Description "Curso de administración y preparación CKA con 8 prácticas de Kubernetes." -Apply
 ```
 
-El instalador descarga temporalmente la plantilla central, añade **metadatos de tracking** (no instrucciones nuevas), instala el workflow Pages y prepara el runtime. Puede añadir archivos técnicos locales en la primera adopción; esos scripts deben retirarse en una fase de limpieza controlada y con una prueba posterior del build, no mediante un `git clean` indiscriminado.
+El instalador descarga herramientas a un clon **temporal** y deja en el curso únicamente identidad, metadatos estables de tracking, include necesario, integración mínima de layouts y el workflow Pages. **No copia scripts generadores ni JavaScript compartidos**: GitHub Actions los obtiene de `webpagesrepo` durante el build. No ejecutar limpieza indiscriminada de otros archivos del curso.
 
 ## Revisar y publicar la primera integración
 
@@ -110,6 +110,8 @@ Sesiones: revisiones congeladas; cualquier adopción/migración de sesión
 **No activar tokens de sincronización de manifests en GitHub Actions como sustituto de la revisión del catálogo.** Publicar y sincronizar son responsabilidades diferentes. Una segunda sincronización sin cambios no debe crear una revisión adicional.
 
 ## Protección, respaldo y límites
+
+No hace falta crear un curso con la plantilla de `webpagesrepo`: se admiten repositorios Jekyll previamente existentes que tengan la estructura documentada; no se promete adoptar sin ajuste cualquier organización Markdown, layouts o catálogo.
 
 El migrador inicial genera IDs estables, por lo que su aplicación necesita revisión de metadatos y respaldo (carpetas `.migration-backup-labcontrol/` y `.labcontrol-template-backup/` excluidas de Git). Un curso ya vinculado **no debe volver a migrarse** ni renumerarse automáticamente. El bootstrap inicial no garantiza compatibilidad con cualquier variante de Jekyll: si no reconoce estructura, falla sin inventar cambios. El origen GitHub Pages debe estar autorizado en la allowlist de la API. No copiar secretos ni pruebas de propiedad en repositorios de terceros.
 
