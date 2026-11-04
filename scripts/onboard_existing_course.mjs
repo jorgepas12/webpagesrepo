@@ -81,6 +81,7 @@ async function main() {
     await copyFile(source, current);
   }
   run(process.execPath, [join(template, 'scripts/update_existing_course_runtime.mjs'), '--target', target, '--apply']);
+  run(process.execPath, [join(template, 'scripts/update_existing_course_layouts.mjs'), '--target', target, '--apply']);
   const ignorePath = join(target, '.gitignore');
   const ignore = await readFile(ignorePath, 'utf8').catch(e => e.code === 'ENOENT' ? '' : Promise.reject(e));
   const needed = ['.migration-backup-labcontrol/', '.labcontrol-template-backup/'];
@@ -95,6 +96,7 @@ async function main() {
   run(process.execPath, ['scripts/test_course_catalog.mjs'], target);
   run(process.platform === 'win32' ? 'python' : 'python3', ['scripts/verify_academic_integrity.py'], target);
   run(process.execPath, ['scripts/repair_step_ids.mjs', '--check'], target);
+  run(process.execPath, [join(template, 'scripts/verify_course_runtime.mjs'), target]);
   console.log('Migración técnica aplicada y catálogo generado.');
   console.log('SIGUIENTE: revisar git diff, crear course.identity.json, actualizar workflow y validar Jekyll antes del push.');
 }
