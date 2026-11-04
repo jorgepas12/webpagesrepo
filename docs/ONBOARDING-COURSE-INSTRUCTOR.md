@@ -1,6 +1,6 @@
 # Procedimiento estándar: incorporar un curso existente a LabControl
 
-**Aplica a un repositorio de curso creado desde otra plantilla Jekyll.** El instructor edita sus laboratorios y hace push a su propio repositorio. No necesita clonar ni conservar `webpagesrepo`.
+**Aplica a cursos nuevos y existentes, aunque no hayan sido creados con una plantilla Jekyll.** El instructor edita sus laboratorios y hace push a su propio repositorio. No necesita clonar ni conservar `webpagesrepo`.
 
 ## Responsabilidades y gobierno de versiones
 
@@ -19,61 +19,96 @@ Prerequisitos en el equipo: `git`, `node` 24, `python` 3 y acceso a Internet; en
 
 **Límite académico:** si las prácticas no tienen marcadores de paso reconocibles, hay que identificar sus pasos antes de asignar IDs. Esto no debe resolverse inventando límites de tareas. El mismo procedimiento aplica a un curso nuevo con solo `labs/` y a uno antiguo con su propia estructura. `trackingId` y `code` deben definirse antes del primer registro en LabControl y no renumerarse posteriormente.
 
-Primero terminar y confirmar cambios académicos:
+Primero terminar y confirmar los cambios académicos propios del curso con el procedimiento Git habitual. El bootstrap **exige un estado Git limpio** antes de la migración; si ya está limpio, no hay que crear un commit adicional.
 
-```bash
-git status
-git add labs/
-git commit -m "docs(labs): validar contenido inicial"
+## Opción A: Git Bash en Windows o Linux (genérica)
+
+**Repositorio:** ejecutar desde la raíz del repositorio del curso que se quiere incorporar, **no desde webpagesrepo ni lab-control**. No editar el script de bootstrap ni escribir datos de otro curso. El siguiente bloque solicita la identidad del curso y la conserva en variables de la sesión actual de Git Bash:
+
+~~~bash
+git remote -v
 git status --short
-```
 
-El bootstrap **exige estado Git limpio** antes de la migración técnica.
+read -r -p "Tracking ID (minúsculas, 2 a 20 caracteres, p. ej. nombrecorto): " TRACKING_ID
+read -r -p "Código (mayúsculas, números y _, p. ej. CURSO_INT): " COURSE_CODE
+read -r -p "Nombre oficial del curso: " COURSE_NAME
+read -r -p "Descripción breve del curso: " COURSE_DESCRIPTION
+~~~
 
-## Opción A: Git Bash de Windows o Linux
+Los valores se eligen para **ese curso**, no se copian del ejemplo. El tracking ID debe ser el mismo que la clave existente de \`_data/courses.yml\`, si ya hay catálogo; una vez registrado en LabControl no debe cambiarse. No incluir contraseñas ni tokens. Asegurar \`git status --short\` vacío antes de continuar.
 
-Desde **la raíz del repositorio del curso**, reemplazar los valores de ejemplo con los datos de ese curso:
+Descargar una sola vez el iniciador y ejecutar la **simulación obligatoria**, sin modificar archivos:
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/jorgepas12/webpagesrepo/main/scripts/bootstrap_existing_course.sh -o /tmp/labcontrol-bootstrap.sh
+~~~bash
+curl -fsSL \
+  https://raw.githubusercontent.com/jorgepas12/webpagesrepo/main/scripts/bootstrap_existing_course.sh \
+  -o /tmp/labcontrol-bootstrap.sh
 
-# 1. Simulación; no modifica ningún archivo
 bash /tmp/labcontrol-bootstrap.sh \
-  --tracking-id ckapriv \
-  --code CKA_PRIV \
-  --name "Administración, despliegue y preparación para CKA" \
-  --description "Curso de administración y preparación CKA con 8 prácticas de Kubernetes."
+  --tracking-id "$TRACKING_ID" \
+  --code "$COURSE_CODE" \
+  --name "$COURSE_NAME" \
+  --description "$COURSE_DESCRIPTION"
 
-# 2. Aplicación, solo después de revisar la simulación
+git status --short
+~~~
+
+Revisar el número de labs/tareas/pasos y los archivos por crear o actualizar. Si aparece un error de estructura, resolverlo antes de continuar. Cuando el dry-run sea correcto, aplicar **en la misma sesión de terminal**, reutilizando las variables:
+
+~~~bash
 bash /tmp/labcontrol-bootstrap.sh \
-  --tracking-id ckapriv \
-  --code CKA_PRIV \
-  --name "Administración, despliegue y preparación para CKA" \
-  --description "Curso de administración y preparación CKA con 8 prácticas de Kubernetes." \
+  --tracking-id "$TRACKING_ID" \
+  --code "$COURSE_CODE" \
+  --name "$COURSE_NAME" \
+  --description "$COURSE_DESCRIPTION" \
   --apply
+~~~
 
+No hacer commit ni push antes de revisar el diff. Para terminar, después de validar y publicar:
+
+~~~bash
 rm /tmp/labcontrol-bootstrap.sh
-```
+~~~
 
-**Nota:** el wrapper se descarga en `/tmp` para mantener limpio el repositorio; elimínalo después de aplicar. No se crea una dependencia Git persistente con `webpagesrepo`.
+Si se cierra la terminal entre simulación y aplicación, se pierden las variables: repetir el primer bloque para el mismo curso con **exactamente los mismos valores**.
 
-## Opción B: Windows PowerShell
+## Opción B: Windows PowerShell (genérica)
 
-Desde **la raíz del repositorio del curso**, con PowerShell:
+**Repositorio:** ejecutar desde la raíz del curso, no desde webpagesrepo. El siguiente bloque solicita los datos una sola vez y permite reutilizarlos durante la sesión actual de PowerShell:
 
-```powershell
+~~~powershell
+git remote -v
+git status --short
+
+$TrackingId = Read-Host "Tracking ID (minúsculas, 2 a 20 caracteres)"
+$CourseCode = Read-Host "Código (mayúsculas, números y guion bajo)"
+$CourseName = Read-Host "Nombre oficial del curso"
+$CourseDescription = Read-Host "Descripción breve del curso"
+~~~
+
+Si ya existe \`_data/courses.yml\`, utilizar su clave como \`$TrackingId\`. Asegurar que \`git status --short\` esté vacío. Descargar y ejecutar en **simulación**:
+
+~~~powershell
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/jorgepas12/webpagesrepo/main/scripts/bootstrap_existing_course.ps1" -OutFile "$env:TEMP\labcontrol-bootstrap.ps1"
 
-# Simulación
-& "$env:TEMP\labcontrol-bootstrap.ps1" -TrackingId "ckapriv" -Code "CKA_PRIV" -Name "Administración, despliegue y preparación para CKA" -Description "Curso de administración y preparación CKA con 8 prácticas de Kubernetes."
+& "$env:TEMP\labcontrol-bootstrap.ps1" -TrackingId $TrackingId -Code $CourseCode -Name $CourseName -Description $CourseDescription
 
-# Aplicación al terminar la revisión
-& "$env:TEMP\labcontrol-bootstrap.ps1" -TrackingId "ckapriv" -Code "CKA_PRIV" -Name "Administración, despliegue y preparación para CKA" -Description "Curso de administración y preparación CKA con 8 prácticas de Kubernetes." -Apply
-```
+git status --short
+~~~
 
-El instalador descarga herramientas a un clon **temporal** y deja en el curso únicamente identidad, metadatos estables de tracking, include necesario, integración mínima de layouts y el workflow Pages. **No copia scripts generadores ni JavaScript compartidos**: GitHub Actions los obtiene de `webpagesrepo` durante el build. No ejecutar limpieza indiscriminada de otros archivos del curso.
+Una vez revisado el resultado, ejecutar en la **misma sesión de PowerShell**:
 
-**Caso real de referencia:** [DBRICKS-DE_INT — simulación aprobada, aplicación, revisión y publicación](cases/DBRICKS-DE_INT-ONBOARDING.md). Incluye los comandos completos ejecutados en Git Bash y la verificación de 13 laboratorios, 63 tareas y 474 pasos. Esta guía no supone que la aplicación o el build ya se hayan completado.
+~~~powershell
+& "$env:TEMP\labcontrol-bootstrap.ps1" -TrackingId $TrackingId -Code $CourseCode -Name $CourseName -Description $CourseDescription -Apply
+~~~
+
+No hacer commit/push hasta revisar. Al finalizar:
+
+~~~powershell
+Remove-Item "$env:TEMP\labcontrol-bootstrap.ps1"
+~~~
+
+El instalador clona \`webpagesrepo\` **temporalmente**, crea identidad y metadatos de seguimiento estables, integra lo mínimo de Jekyll y reemplaza el workflow Pages con el central. **No copia generadores ni JavaScript comunes**: GitHub Actions los obtiene en cada build. Si el curso ya tiene una identidad de LabControl, no repetir la migración inicial. Los respaldos de cambios técnicos permanecen locales y no deben incorporarse al commit.
 
 ## Revisar y publicar la primera integración
 
@@ -86,6 +121,8 @@ git status --short
 # Revisar cuidadosamente labs/, course.identity.json y .github/workflows/pages.yml.
 # Confirmar que el diff de labs solo inserta metadata course_id/lab_id/tNNN/sNNN.
 git add -A
+git status --short
+# No incluir respaldos ni archivos ajenos al curso.
 git diff --cached --check
 git diff --cached --stat
 git commit -m "feat(labcontrol): incorporar seguimiento y workflow central"
