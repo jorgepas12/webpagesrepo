@@ -54,3 +54,10 @@ No activar sincronización autenticada desde workflows hasta verificar endpoint,
 - **Falta ejecutar esta prueba reforzada en GitHub Actions**; el último run exitoso es anterior a estos checks.
 - La invocación del reusable workflow todavía usa una rama de desarrollo; antes de publicar se debe fusionar/aprobar la versión y sustituirla por un commit SHA fijo, y volver a probar.
 - Revisar el script de onboarding para no copiar tooling innecesario en futuras adopciones y documentar reversión antes de considerar el PR como listo.
+
+## Gate CKA reforzado — ejecución #6
+
+- [Run #41750871911](https://github.com/Netec-Mx/CKA-Priv-/actions/runs/41750871911), commit `0cb854d609ddc707d4f75732f7979b373d0c0f23`, resultado `success`.
+- `central-validation / build` y `package-pages` completados; dos artefactos disponibles.
+- Verificación de catálogo, ocho snapshots, assets JS y HTML superada.
+- No se efectuó deploy. El PR de CKA requiere creación manual si la integración de GitHub devuelve 403; mantenerlo en estado draft.
