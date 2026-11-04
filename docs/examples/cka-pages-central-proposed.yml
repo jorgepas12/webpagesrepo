@@ -1,6 +1,6 @@
 # REPLACEMENT CANDIDATE for the course's existing .github/workflows/pages.yml.
 # Keep the existing Pages workflow until this candidate is reviewed and approved.
-# PIN the reusable workflow to a release commit SHA before merging to main.
+# Pilot pinned to immutable commit; replace with approved release SHA after PR #39 is merged.
 name: Build and Deploy Jekyll via LabControl
 
 on:
@@ -19,7 +19,7 @@ jobs:
   validate-and-build:
     permissions:
       contents: read
-    uses: jorgepas12/webpagesrepo/.github/workflows/labcontrol-reusable.yml@feat/central-course-onboarding-cka
+    uses: jorgepas12/webpagesrepo/.github/workflows/labcontrol-reusable.yml@a8f8fdf76493bab884cece7eea8168bccd329de5
     with:
       tracking_id: ckapriv
       upload_site: true
@@ -35,6 +35,13 @@ jobs:
         with:
           name: labcontrol-validated-site
           path: _site
+
+      - name: Verify CKA published catalog and runtimes
+        run: |
+          test -s _site/course.identity.json
+          test -s _site/labcontrol/ckapriv/course.json
+          test -s _site/assets/js/lab-tracker.js
+          for n in 1 2 3 4 5 6 7 8; do test -s "_site/labcontrol/ckapriv/content/$(printf 'l%03d' "$n").json"; done
 
       - name: Package for GitHub Pages
         uses: actions/upload-pages-artifact@v4
