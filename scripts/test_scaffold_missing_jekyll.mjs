@@ -85,3 +85,23 @@ test('incompatibilidad académica falla sin crear archivos',async()=>{
     assert.deepEqual((await readdir(root)).sort(),before);
   }finally{await rm(root,{recursive:true,force:true});}
 });
+
+test('Markdown sin frontmatter: añade metadata Jekyll y preserva instrucciones textuales',async()=>{
+  const {root}=await seed();
+  try{
+    const bare=['# Laboratorio sin plantilla','',
+      '## Tarea 1','- {% include step_label.html %} Ejecutar comando.', ''].join('\n');
+    await writeFile(join(root,'labs/lab1/lab1.md'),bare);
+    run('git',['add','.'],root);
+    run('git',['-c','user.email=test@example.org','-c','user.name=Test','commit','-m','plain markdown'],root);
+    const command=[ADOPT,'--target',root,'--tracking-id','demosinplantilla','--code','DEMO_SIN_PLANTILLA','--name','Demo sin plantilla'];
+    run(process.execPath,[...command,'--apply'],root);
+    const migrated=await readFile(join(root,'labs/lab1/lab1.md'),'utf8');
+    assert.match(migrated,/^---\nlayout: lab\n/m);
+    assert.match(migrated,/title: "Laboratorio sin plantilla"/);
+    assert.match(migrated,/permalink: \/lab1\/lab1\//);
+    assert.match(migrated,/# Laboratorio sin plantilla/);
+    assert.match(migrated,/Ejecutar comando/);
+    assert.match(migrated,/id="s001"/);
+  }finally{await rm(root,{recursive:true,force:true});}
+});
