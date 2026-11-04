@@ -37,6 +37,12 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Prepare shared LabControl browser runtime in CI checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          node .central-webpagesrepo/scripts/prepare_course_build.mjs --target . --apply
+
       - name: Validate LabControl identity and runtime
         shell: bash
         run: |
