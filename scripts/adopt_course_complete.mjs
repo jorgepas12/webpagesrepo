@@ -76,6 +76,22 @@ async function stageFile(rel,content) {
   if(prior!==content) changes.push({rel,dst,prior,content});
 }
 async function installFiles() {
+  // Refresh common technical assets from the central template, never course content.
+  const shared = [
+    '_includes/step_label.html',
+    'scripts/generate_lab_manifest.mjs',
+    'scripts/generate_course_catalog.mjs',
+    'scripts/repair_step_ids.mjs',
+    'scripts/lab_id_registry.mjs',
+    'scripts/normalize_course_labs.mjs',
+    'scripts/sync_lab_manifests.mjs',
+    'scripts/sync_course_catalog.mjs',
+    'scripts/read_course_identity.mjs',
+    'scripts/write_course_link_proof.mjs'
+  ];
+  for (const rel of shared) {
+    await stageFile(rel, await readFile(join(source,rel),'utf8'));
+  }
   const workflow=await readFile(join(source,'docs/examples/standard-course-pages.yml'),'utf8');
   await stageFile(workflowPath,workflow);
   const desired=JSON.stringify(desiredIdentity,null,2)+'\n';
