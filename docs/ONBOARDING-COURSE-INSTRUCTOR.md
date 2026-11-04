@@ -73,6 +73,8 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/jorgepas12/webpagesrep
 
 El instalador descarga herramientas a un clon **temporal** y deja en el curso únicamente identidad, metadatos estables de tracking, include necesario, integración mínima de layouts y el workflow Pages. **No copia scripts generadores ni JavaScript compartidos**: GitHub Actions los obtiene de `webpagesrepo` durante el build. No ejecutar limpieza indiscriminada de otros archivos del curso.
 
+**Caso real de referencia:** [DBRICKS-DE_INT — simulación aprobada, aplicación, revisión y publicación](cases/DBRICKS-DE_INT-ONBOARDING.md). Incluye los comandos completos ejecutados en Git Bash y la verificación de 13 laboratorios, 63 tareas y 474 pasos. Esta guía no supone que la aplicación o el build ya se hayan completado.
+
 ## Revisar y publicar la primera integración
 
 **Repositorio: el curso, no `webpagesrepo`.**
