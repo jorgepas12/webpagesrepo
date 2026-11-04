@@ -30,7 +30,7 @@ export function prepareLayout(html) {
     // Only insert into a recognized HTML layout; never replace course content.
     const bodyEnd = /<\/body\s*>/i;
     if (!bodyEnd.test(html)) throw Error('No se encontró cierre </body> ni loader de progreso en layout.');
-    return html.replace(bodyEnd, demoScript + '\\n  ' + progressScript + '\\n  </body>');
+    return html.replace(bodyEnd, demoScript + '\n  ' + progressScript + '\n  </body>');
   }
   return html.replace(progressScript, demoScript + '\\n  ' + progressScript);
 }
