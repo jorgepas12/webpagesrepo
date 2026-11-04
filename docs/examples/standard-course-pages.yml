@@ -83,10 +83,28 @@ jobs:
           test -s "_site/labcontrol/$TRACKING_ID/course.json"
           node -e 'const fs=require("node:fs");const c=JSON.parse(fs.readFileSync("_site/labcontrol/"+process.argv[1]+"/course.json"));if(!c.labs?.length)throw Error("Empty catalog")' "$TRACKING_ID"
 
+      - name: Package GitHub Pages artifact (preserve verification proof)
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar --dereference --hard-dereference \
+            -C ./_site \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=".[^/]*" \
+            -cf "$RUNNER_TEMP/artifact.tar" .
+          if [[ -d ./_site/.well-known ]]; then
+            tar --append -f "$RUNNER_TEMP/artifact.tar" -C ./_site .well-known
+          fi
+          tar -tf "$RUNNER_TEMP/artifact.tar" | grep -F 'labcontrol/'
+
       - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-artifact@v4
         with:
-          path: ./_site
+          name: github-pages
+          path: ${{ runner.temp }}/artifact.tar
+          retention-days: 1
+          if-no-files-found: error
 
   deploy:
     needs: build
