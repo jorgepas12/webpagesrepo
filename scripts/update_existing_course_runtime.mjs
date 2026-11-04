@@ -44,15 +44,16 @@ function flag(args, name) {
   return i < 0 ? undefined : args[i + 1];
 }
 export async function run(args = process.argv.slice(2)) {
-  const allowedArgs = new Set(['--target', '--apply', '--help']);
+  const allowedArgs = new Set(['--target', '--apply', '--layout-only', '--help']);
   for (let i = 0; i < args.length; i++) {
     if (!allowedArgs.has(args[i])) throw Error('Argumento desconocido: ' + args[i]);
     if (args[i] === '--target') i++;
   }
   if (args.includes('--help')) {
-    console.log('Uso: node scripts/update_existing_course_runtime.mjs --target /ruta/curso [--apply]');
+    console.log('Uso: node scripts/update_existing_course_runtime.mjs --target /ruta/curso [--apply] [--layout-only]');
     return;
   }
+  const layoutOnly = args.includes('--layout-only');
   const targetArg = flag(args, '--target');
   if (!targetArg || targetArg.startsWith('--')) throw Error('Requiere --target /ruta/curso');
   const target = resolve(targetArg);
@@ -64,7 +65,7 @@ export async function run(args = process.argv.slice(2)) {
   const currentLayout = await readFile(join(target, layoutPath), 'utf8');
   const newLayout = prepareLayout(currentLayout);
   const candidates = [];
-  for (const rel of allowed) {
+  for (const rel of layoutOnly ? [] : allowed) {
     const from = join(templateRoot, rel);
     const to = join(target, rel);
     if (!await existingFile(from)) throw Error('Runtime fuente no disponible: ' + rel);
@@ -78,7 +79,7 @@ export async function run(args = process.argv.slice(2)) {
   const ignoreTo = join(target, ignoreRel);
   const hasIgnore = await existingFile(ignoreTo);
   const originalIgnore = hasIgnore ? await readFile(ignoreTo, 'utf8') : '';
-  if (!originalIgnore.split(/\r?\n/).some(line => line.trim() === '.labcontrol-template-backup/')) {
+  if (!layoutOnly && !originalIgnore.split(/\r?\n/).some(line => line.trim() === '.labcontrol-template-backup/')) {
     const updatedIgnore = originalIgnore
       + (originalIgnore && !originalIgnore.endsWith('\n') ? '\n' : '')
       + '\n# Backups de actualización técnica de Lab Control\n.labcontrol-template-backup/\n';
