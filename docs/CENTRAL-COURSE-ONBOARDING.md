@@ -46,3 +46,11 @@ No activar sincronización autenticada desde workflows hasta verificar endpoint,
 - Netec-Mx/CKA-Priv-: [run #41750364175](https://github.com/Netec-Mx/CKA-Priv-/actions/runs/41750364175), commit `7b23d2c`, rama `test/labcontrol-onboarding`: `success`.
 - Jobs aprobados: `central-validation / build` y `package-pages`. Dos artefactos producidos; no hubo despliegue.
 - Para publicar: sustituir el workflow existente del curso en un único cambio controlado, únicamente después de fijar una versión estable del central y verificar el vínculo LabControl. Mantener una sola ruta de despliegue.
+
+## Gate de release reproducible (2026-11-03)
+
+- El checkout de las herramientas del workflow reutilizable quedó fijado al commit `ce7a424b754eb683f6ec222b6ce10f4f83ea1cc5` de `webpagesrepo` (baseline main), en vez de una rama mutable.
+- La prueba `docs/examples/cka-labcontrol-validation.yml` exige que el artefacto construido incluya los ocho snapshots, `lab-tracker.js`, `lab-progress.js`, catálogo y HTML.
+- **Falta ejecutar esta prueba reforzada en GitHub Actions**; el último run exitoso es anterior a estos checks.
+- La invocación del reusable workflow todavía usa una rama de desarrollo; antes de publicar se debe fusionar/aprobar la versión y sustituirla por un commit SHA fijo, y volver a probar.
+- Revisar el script de onboarding para no copiar tooling innecesario en futuras adopciones y documentar reversión antes de considerar el PR como listo.
