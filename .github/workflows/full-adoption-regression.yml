@@ -70,6 +70,8 @@ jobs:
         env:
           COURSE_DIR: ${{ runner.temp }}/cka-adoption
         run: |
+          # Simulate the first course build with central generators, not local scripts.
+          (cd "$COURSE_DIR" && node "$GITHUB_WORKSPACE/scripts/generate_lab_manifest.mjs" --all && node "$GITHUB_WORKSPACE/scripts/generate_course_catalog.mjs")
           node scripts/verify_course_runtime.mjs "$COURSE_DIR"
           node scripts/repair_step_ids.mjs --check --root "$COURSE_DIR"
           node -e 'const f=require("node:fs"),p=process.env.COURSE_DIR;const x=JSON.parse(f.readFileSync(p+"/course.identity.json"));if(x.code!=="CKA_PRIV"||x.trackingId!=="ckapriv")process.exit(1);const c=JSON.parse(f.readFileSync(p+"/labcontrol/ckapriv/course.json"));if(c.labs.length!==8)process.exit(1);'
