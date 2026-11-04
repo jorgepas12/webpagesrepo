@@ -18,8 +18,6 @@ TASK = re.compile(r"^##\s+\S")
 STEP = re.compile(r"{%\s*include\s+step_label\.html\b([^%]*)%}")
 ID = re.compile(r"\bid\s*=\s*['\"]([^'\"]+)['\"]")
 TASK_ASSIGN = re.compile(r"{%\s*assign\s+tracking_task_id\s*=")
-COPY_DIRS = ("scripts", "_includes", "_layouts", "assets/js")
-COPY_FILES = (".github/workflows/pages.yml",)
 
 
 def prepare_lab(path: Path, course_id: str, number: int) -> tuple[str, int, int]:
@@ -135,26 +133,6 @@ def main() -> None:
         dest = backup / labfile.relative_to(root)
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(labfile, dest)
-    copied = []
-    for dirname in COPY_DIRS:
-        source = template / dirname
-        if not source.is_dir():
-            continue
-        for item in source.rglob("*"):
-            if not item.is_file():
-                continue
-            relative = item.relative_to(template)
-            target = root / relative
-            if not target.exists():
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(item, target)
-                copied.append(str(relative))
-    for filename in COPY_FILES:
-        source, dest = template / filename, root / filename
-        if source.is_file() and not dest.exists():
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source, dest)
-            copied.append(filename)
     for labfile, result in planned:
         labfile.write_text(result, encoding="utf-8", newline="")
     # Preserve existing Jekyll configuration and add a missing tracking API.
@@ -196,10 +174,8 @@ def main() -> None:
     registry.parent.mkdir(parents=True, exist_ok=True)
     registry.write_text(record, encoding="utf-8")
     print(f"OK: {len(labs)} labs migrados; backup en {backup}")
-    print(f"Archivos de tooling copiados (solo ausentes): {len(copied)}")
     print("Revisa _config.yml, _data/courses.yml, Jekyll build y el diff antes del commit.")
-    print("Después: node scripts/generate_lab_manifest.mjs --all")
-    print("         node scripts/generate_course_catalog.mjs")
+    print("Metadatos de seguimiento preparados; los recursos técnicos se gestionan por separado.")
 
 
 if __name__ == "__main__":
