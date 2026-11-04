@@ -132,13 +132,13 @@ async function main() {
   if(!migrated) python('verify_academic_integrity.py',[],target);
   node('verify_course_runtime.mjs',[target]);
   node('repair_step_ids.mjs',['--check','--root',target]);
-  node('generate_lab_manifest.mjs',['--all']);
-  node('generate_course_catalog.mjs');
+  // Manifest/catalog are generated during the first Actions build, not committed on adoption.
   // Tooling tests run in the central checkout; the target intentionally has no scripts/.
   node('test_lab_manifest.mjs',[],source);
   node('test_course_catalog.mjs',[],source);
   command('git',['diff','--check']);
-  console.log('ADOPCIÓN TÉCNICA LISTA. Validar Jekyll y diff; commit/push solo cuando lo apruebes.');
+  console.log('ADOPCIÓN MÍNIMA LISTA: identidad, tracking, layouts e integración CI.');
+  console.log('Revisar diff académico, commit/push; Actions generará manifests y catálogo al publicar.');
   console.log('URL prevista: https://netec-mx.github.io/'+(await readFile(join(target,'_config.yml'),'utf8')).match(/baseurl:\s*["']\/([^"']+)/)?.[1]+'/');
 }
 main().catch(e=>{console.error('ERROR:',e.message);process.exitCode=1;});
