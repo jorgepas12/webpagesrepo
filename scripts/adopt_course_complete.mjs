@@ -92,7 +92,10 @@ async function installFiles() {
   for (const rel of shared) {
     await stageFile(rel, await readFile(join(source,rel),'utf8'));
   }
-  const workflow=await readFile(join(source,'docs/examples/standard-course-pages.yml'),'utf8');
+  let workflow=await readFile(join(source,'docs/examples/standard-course-pages.yml'),'utf8');
+  const sourceRevision=spawnSync('git',['rev-parse','HEAD'],{cwd:source,encoding:'utf8'});
+  if(sourceRevision.status!==0 || !/^[a-f0-9]{40}$/.test(sourceRevision.stdout.trim())) throw Error('No se pudo fijar el commit de la plantilla central');
+  workflow=workflow.replace('ref: main','ref: '+sourceRevision.stdout.trim());
   await stageFile(workflowPath,workflow);
   const desired=JSON.stringify(desiredIdentity,null,2)+'\n';
   if(!await exists(identityFile)) await stageFile('course.identity.json',desired);
