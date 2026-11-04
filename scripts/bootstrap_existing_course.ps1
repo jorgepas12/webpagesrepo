@@ -12,8 +12,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 if (-not (Test-Path -Path '.git' -PathType Container) -or
-    -not (Test-Path -Path 'labs' -PathType Container) -or
-    -not (Test-Path -Path '_data/courses.yml' -PathType Leaf)) {
+    -not (Test-Path -Path 'labs' -PathType Container)) {
   throw 'Ejecutar desde la raiz de un repositorio Jekyll que ya tenga .git, labs y _data/courses.yml.'
 }
 $null = Get-Command git -ErrorAction Stop
