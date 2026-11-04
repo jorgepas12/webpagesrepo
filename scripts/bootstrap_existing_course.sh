@@ -13,7 +13,7 @@ temp_root="$(mktemp -d)"
 trap 'rm -rf "$temp_root"' EXIT
 
 git clone --depth 1 \
-  --branch feat/central-course-onboarding-cka \
+  --branch main \
   https://github.com/jorgepas12/webpagesrepo.git \
   "$temp_root/webpagesrepo" >&2
 
