@@ -1,0 +1,82 @@
+name: Central course runtime build regression
+
+on:
+  push:
+    paths:
+      - 'scripts/prepare_course_build.mjs'
+      - 'scripts/test_prepare_course_build.mjs'
+      - '.github/workflows/central-runtime-regression.yml'
+  pull_request:
+    paths:
+      - 'scripts/prepare_course_build.mjs'
+      - 'scripts/test_prepare_course_build.mjs'
+      - '.github/workflows/central-runtime-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Test ephemeral runtime preparation
+        run: |
+          node --check scripts/prepare_course_build.mjs
+          node --test scripts/test_prepare_course_build.mjs
+
+  cka-existing-course:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout centralized tooling under review
+        uses: actions/checkout@v4
+        with:
+          path: tooling
+      - name: Checkout published CKA fixture (read only)
+        uses: actions/checkout@v4
+        with:
+          repository: Netec-Mx/CKA-Priv-
+          ref: main
+          path: course
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Prepare and validate course in temporary workspace
+        working-directory: course
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --exit-code -- labs/
+          node ../tooling/scripts/prepare_course_build.mjs --target . --check
+          node ../tooling/scripts/prepare_course_build.mjs --target . --apply
+          node ../tooling/scripts/prepare_course_build.mjs --target . --apply | grep -F 'Runtime técnico sin diferencias'
+          git diff --exit-code -- labs/ course.identity.json _config.yml _layouts/ _includes/
+          node ../tooling/scripts/verify_course_runtime.mjs .
+          node ../tooling/scripts/repair_step_ids.mjs --check --root .
+          node ../tooling/scripts/generate_lab_manifest.mjs --all
+          node ../tooling/scripts/generate_course_catalog.mjs
+          node -e 'const c=require("./labcontrol/ckapriv/course.json");if(c.labs.length!==8)process.exit(1);const tasks=c.labs.flatMap(l=>l.manifest?.tasks||[]);if(tasks.length!==55||tasks.reduce((n,t)=>n+(t.steps?.length||0),0)!==448)process.exit(1);'
+          git diff --exit-code -- labs/ course.identity.json _config.yml _layouts/ _includes/
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        env:
+          BUNDLE_GEMFILE: ${{ github.workspace }}/course/Gemfile
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+      - name: Verify Jekyll renders centralized runtime
+        working-directory: course
+        env:
+          BUNDLE_GEMFILE: ${{ github.workspace }}/course/Gemfile
+          JEKYLL_ENV: production
+        run: |
+          bundle exec jekyll build --trace
+          test -s _site/assets/js/lab-tracker.js
+          test -s _site/assets/js/lab-progress.js
+          test -s _site/course.identity.json
+          test -s _site/labcontrol/ckapriv/course.json
