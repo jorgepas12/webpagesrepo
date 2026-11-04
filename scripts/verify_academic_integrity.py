@@ -24,10 +24,10 @@ def comparable(text, migrated, drop_generated_permalink=False):
     fm = match.group(1).splitlines()
     if migrated:
         fm = [x for x in fm if not META.match(x)
-              and not (drop_generated_permalink and re.match(r'^permalink:\\s*', x))]
+              and not (drop_generated_permalink and re.match(r'^permalink:\s*', x))]
     else:
         # lab_number may predate migration; compare academic content, not this field.
-        fm = [x for x in fm if not re.match(r"^lab_number:\\s*", x)]
+        fm = [x for x in fm if not re.match(r"^lab_number:\s*", x)]
     body = text[match.end():]
     if migrated:
         body = STEP.sub(r"\1", body)
@@ -57,7 +57,7 @@ def main():
                                   text=True, capture_output=True, encoding="utf-8")
         if original.returncode:
             raise ValueError(path + ": no existe en HEAD")
-        has_original_permalink = bool(re.search(r"(?m)^permalink:\\s*", original.stdout))
+        has_original_permalink = bool(re.search(r"(?m)^permalink:\s*", original.stdout))
         if comparable(original.stdout, False) != comparable(
             file.read_text(encoding="utf-8"), True,
             drop_generated_permalink=not has_original_permalink
