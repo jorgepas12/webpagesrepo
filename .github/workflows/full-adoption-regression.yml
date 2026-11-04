@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'scripts/adopt_course_complete.mjs'
+      - 'scripts/scaffold_missing_jekyll.mjs'
+      - 'scripts/test_scaffold_missing_jekyll.mjs'
       - 'scripts/migrate_existing_course.py'
       - 'scripts/update_existing_course_runtime.mjs'
       - 'scripts/test_minimal_course_onboarding.mjs'
@@ -41,6 +43,7 @@ jobs:
         run: |
           python3 -m unittest scripts/test_migrate_existing_course.py
           node --test scripts/test_minimal_course_onboarding.mjs
+          node --test scripts/test_scaffold_missing_jekyll.mjs
           node --test scripts/test_update_existing_course_runtime.mjs
 
       - name: Download clean CKA course fixture
