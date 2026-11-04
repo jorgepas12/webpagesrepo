@@ -14,7 +14,7 @@ test('layout carga demo primero, es idempotente', () => {
   assert.match(updated, /lab-demo-context\.js[\s\S]*lab-progress\.js/);
   assert.equal(prepareLayout(updated), updated);
   const empty = prepareLayout('<html><body><p>sin seguimiento</p></body></html>');
-  assert.match(empty, /lab-demo-context\\.js[\\s\\S]*lab-progress\\.js/);
+  assert.match(empty, /lab-demo-context\.js[\s\S]*lab-progress\.js/);
   assert.equal(prepareLayout(empty), empty);
   assert.throws(() => prepareLayout('<p>sin seguimiento</p>'), /cierre/);
 });
