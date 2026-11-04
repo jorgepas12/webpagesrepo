@@ -1,5 +1,5 @@
-# Central validation and optional publication for existing Netec Jekyll courses.
-# During development this checks out the feature branch; pin a release SHA/tag before production.
+# Centralized read-only validation of an existing Netec Jekyll course.
+# Tooling is pinned to a reviewed immutable commit.
 name: LabControl central course validation
 
 on:
@@ -33,7 +33,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: jorgepas12/webpagesrepo
-          ref: feat/central-course-onboarding-cka
+          ref: ce7a424b754eb683f6ec222b6ce10f4f83ea1cc5
           path: tooling
           persist-credentials: false
 
