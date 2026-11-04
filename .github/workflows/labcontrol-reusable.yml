@@ -9,6 +9,10 @@ on:
         description: Stable tracking ID already present in the course's Jekyll catalog
         required: true
         type: string
+      upload_site:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -91,3 +95,11 @@ jobs:
           JEKYLL_ENV: production
         run: bundle exec jekyll build --trace
 
+
+      - name: Export built site for review
+        if: inputs.upload_site
+        uses: actions/upload-artifact@v4
+        with:
+          name: labcontrol-validated-site
+          path: course/_site/
+          if-no-files-found: error
