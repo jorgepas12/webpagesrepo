@@ -27,6 +27,7 @@ test('nuevo curso Jekyll independiente: incorporación mínima, tracking estable
     ].join('\n');
     await writeFile(join(root,'labs/lab1/lab1.md'),academic);
     run('git',['init','-b','main'],root);
+    run('git',['remote','add','origin','https://github.com/Netec-Mx/Demo-Curso.git'],root);
     run('git',['add','.'],root);
     run('git',['-c','user.name=CI','-c','user.email=ci@example.test','commit','-m','baseline'],root);
     const args=[SCRIPT,'--target',root,'--tracking-id','democurso','--code','DEMO_CURSO','--name','Curso Demo'];
