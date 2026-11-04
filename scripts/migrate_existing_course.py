@@ -28,13 +28,13 @@ def prepare_lab(path: Path, course_id: str, number: int) -> tuple[str, int, int]
     fm = match.group(1) if match else ""
     body = original[match.end():] if match else original
     additions = []
-    if not re.search(r"(?m)^layout\\s*:", fm):
-        additions.append("layout: lab\\n")
-    if not re.search(r"(?m)^title\\s*:", fm):
+    if not re.search(r"(?m)^layout\s*:", fm):
+        additions.append("layout: lab\n")
+    if not re.search(r"(?m)^title\s*:", fm):
         title = next((line[2:].strip() for line in body.splitlines()
                       if line.startswith("# ") and line[2:].strip()), f"Práctica {number}")
-        escaped = title.replace('\\\\', '\\\\\\\\').replace('"', '\\\\"')
-        additions.append(f'title: "{escaped}"\\n')
+        escaped = title.replace("\\", "\\\\").replace('"', '\\"')
+        additions.append(f'title: "{escaped}"\n')
     expected = {"course_id": course_id, "lab_id": f"l{number:03d}",
                 "tracking": "true", "lab_number": str(number), "position": str(number)}
     for field, desired in expected.items():
