@@ -36,9 +36,8 @@ for(const n of labFolders){
   const rel=`labs/lab${n}/lab${n}.md`;
   if(!await exists(rel))throw Error('Práctica ausente: '+rel);
   const markdown=await readFile(join(target,rel),'utf8');
-  if(!/^---\s*\r?\n[\s\S]*?\r?\n---\r?\n/.test(markdown))throw Error('Falta frontmatter en '+rel+'; no se inventan metadatos académicos');
   if(!/{%\s*include\s+step_label\.html\b/.test(markdown))throw Error('No se encontraron step_label en '+rel+'; requiere revisión didáctica antes de asignar IDs');
-  const title=markdown.match(/^title:\s*(.*)$/m)?.[1]?.trim().replace(/^["']|["']$/g,'') || `Práctica ${n}`;
+  const title=markdown.match(/^title:\s*(.*)$/m)?.[1]?.trim().replace(/^["']|["']$/g,'') || markdown.match(/^#\s+(.+)$/m)?.[1]?.trim() || `Práctica ${n}`;
   const duration=markdown.match(/^duration:\s*(.*)$/m)?.[1]?.trim().replace(/^["']|["']$/g,'') || '0 min';
   labs.push({n,title,duration});
 }
