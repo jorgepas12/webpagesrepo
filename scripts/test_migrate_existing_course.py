@@ -55,7 +55,7 @@ class MigrationTest(unittest.TestCase):
                 (root/".migration-backup-labcontrol/labs/lab1/lab1.md").read_bytes(), original
             )
             self.assertIn("next_lab_id: 2", (root/"_data/labcontrol-identities.yml").read_text())
-            self.assertTrue((root/"scripts/dummy.mjs").exists())
+            self.assertFalse((root/"scripts/dummy.mjs").exists())
             config = (root/"_config.yml").read_text(encoding="utf-8")
             self.assertIn("  - .well-known", config)
             self.assertIn("  - assets", config)
