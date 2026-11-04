@@ -36,8 +36,8 @@ test('nuevo curso Jekyll independiente: incorporación mínima, tracking estable
     run(process.execPath,[...args,'--apply'],root);
     const files=await readdir(root);
     assert.ok(files.includes('course.identity.json'));
-    assert.ok(files.includes('labcontrol'));
-    assert.ok(files.includes('.labcontrol'));
+    assert.equal(files.includes('labcontrol'),false,'El catálogo se genera únicamente en CI');
+    assert.equal(files.includes('.labcontrol'),false,'Los manifests se generan únicamente en CI');
     assert.equal(files.includes('scripts'),false,'No se deben copiar scripts locales');
     assert.equal((await readdir(join(root,'assets/js')).catch(()=>[])).length,0,'JS lo prepara Actions');
     assert.ok((await readFile(join(root,'_layouts/default.html'),'utf8')).includes('lab-tracker.js'));
@@ -48,6 +48,9 @@ test('nuevo curso Jekyll independiente: incorporación mínima, tracking estable
     assert.match(markdown,/id="s002"/);
     assert.match(markdown,/Instalar herramientas/);
     assert.match(markdown,/Validar resultado/);
+    // Emulate the temporary GitHub Actions checkout: central tools generate artifacts.
+    run(process.execPath,[resolve('scripts/generate_lab_manifest.mjs'),'--all'],root);
+    run(process.execPath,[resolve('scripts/generate_course_catalog.mjs')],root);
     const catalog=JSON.parse(await readFile(join(root,'labcontrol/democurso/course.json'),'utf8'));
     assert.equal(catalog.labs.length,1);
     assert.equal(catalog.labs[0].manifest.tasks.length,2);
