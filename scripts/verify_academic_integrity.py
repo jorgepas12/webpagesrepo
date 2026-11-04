@@ -16,14 +16,15 @@ META = re.compile(r"^(?:course_id|lab_id|tracking|position|lab_number):\s*")
 TASK = re.compile(r'^\s*{%\s*assign\s+tracking_task_id\s*=\s*["\']t\d{3}["\']\s*%}\s*$')
 STEP = re.compile(r'(\{%\s*include\s+step_label\.html)\s+id=["\']s\d{3}["\']')
 
-def comparable(text, migrated):
+def comparable(text, migrated, drop_generated_permalink=False):
     text = text.replace("\r\n", "\n")
     match = FRONT.match(text)
     if not match:
         raise ValueError("Falta frontmatter")
     fm = match.group(1).splitlines()
     if migrated:
-        fm = [x for x in fm if not META.match(x)]
+        fm = [x for x in fm if not META.match(x)
+              and not (drop_generated_permalink and re.match(r'^permalink:\\s*', x))]
     else:
         # lab_number may predate migration; compare academic content, not this field.
         fm = [x for x in fm if not re.match(r"^lab_number:\\s*", x)]
@@ -56,7 +57,11 @@ def main():
                                   text=True, capture_output=True, encoding="utf-8")
         if original.returncode:
             raise ValueError(path + ": no existe en HEAD")
-        if comparable(original.stdout, False) != comparable(file.read_text(encoding="utf-8"), True):
+        has_original_permalink = bool(re.search(r"(?m)^permalink:\\s*", original.stdout))
+        if comparable(original.stdout, False) != comparable(
+            file.read_text(encoding="utf-8"), True,
+            drop_generated_permalink=not has_original_permalink
+        ):
             raise ValueError(path + ": las instrucciones académicas cambiaron")
         print("OK contenido:", path)
     print(f"INTEGRIDAD ACADÉMICA OK: {len(labs)} Labs; texto sin modificaciones.")
