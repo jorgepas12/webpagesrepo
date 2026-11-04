@@ -1,0 +1,60 @@
+name: Course onboarding wrappers
+
+on:
+  push:
+    paths:
+      - 'scripts/bootstrap_existing_course.sh'
+      - 'scripts/bootstrap_existing_course.ps1'
+      - 'docs/ONBOARDING-COURSE-INSTRUCTOR.md'
+      - 'docs/examples/standard-course-pages.yml'
+      - '.github/workflows/course-onboarding-wrappers.yml'
+  pull_request:
+    paths:
+      - 'scripts/bootstrap_existing_course.sh'
+      - 'scripts/bootstrap_existing_course.ps1'
+      - 'docs/ONBOARDING-COURSE-INSTRUCTOR.md'
+      - 'docs/examples/standard-course-pages.yml'
+      - '.github/workflows/course-onboarding-wrappers.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  bash-and-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax and governance contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/bootstrap_existing_course.sh
+          node --check scripts/adopt_course_complete.mjs
+          node --check scripts/prepare_course_build.mjs
+          test -s docs/ONBOARDING-COURSE-INSTRUCTOR.md
+          grep -F 'prepare_course_build.mjs --target . --apply' docs/examples/standard-course-pages.yml
+          if grep -q 'sync_lab_manifests.mjs --all' docs/examples/standard-course-pages.yml; then
+            echo "::error::No automatizar sincronización a LabControl desde Pages"
+            exit 1
+          fi
+
+  powershell-syntax:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell bootstrap
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path 'scripts/bootstrap_existing_course.ps1').Path,
+            [ref]$tokens,
+            [ref]$errors
+          ) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          Write-Host 'OK: PowerShell bootstrap syntax'
