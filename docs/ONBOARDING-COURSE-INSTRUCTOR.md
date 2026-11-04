@@ -35,7 +35,7 @@ read -r -p "Nombre oficial del curso: " COURSE_NAME
 read -r -p "Descripción breve del curso: " COURSE_DESCRIPTION
 ~~~
 
-Los valores se eligen para **ese curso**, no se copian del ejemplo. El tracking ID debe ser el mismo que la clave existente de \`_data/courses.yml\`, si ya hay catálogo; una vez registrado en LabControl no debe cambiarse. No incluir contraseñas ni tokens. Asegurar \`git status --short\` vacío antes de continuar.
+Los valores se eligen para **ese curso**, no se copian del ejemplo. El tracking ID debe ser el mismo que la clave existente de `_data/courses.yml`, si ya hay catálogo; una vez registrado en LabControl no debe cambiarse. No incluir contraseñas ni tokens. Asegurar `git status --short` vacío antes de continuar.
 
 Descargar una sola vez el iniciador y ejecutar la **simulación obligatoria**, sin modificar archivos:
 
@@ -86,7 +86,7 @@ $CourseName = Read-Host "Nombre oficial del curso"
 $CourseDescription = Read-Host "Descripción breve del curso"
 ~~~
 
-Si ya existe \`_data/courses.yml\`, utilizar su clave como \`$TrackingId\`. Asegurar que \`git status --short\` esté vacío. Descargar y ejecutar en **simulación**:
+Si ya existe `_data/courses.yml`, utilizar su clave como `$TrackingId`. Asegurar que `git status --short` esté vacío. Descargar y ejecutar en **simulación**:
 
 ~~~powershell
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/jorgepas12/webpagesrepo/main/scripts/bootstrap_existing_course.ps1" -OutFile "$env:TEMP\labcontrol-bootstrap.ps1"
@@ -108,7 +108,7 @@ No hacer commit/push hasta revisar. Al finalizar:
 Remove-Item "$env:TEMP\labcontrol-bootstrap.ps1"
 ~~~
 
-El instalador clona \`webpagesrepo\` **temporalmente**, crea identidad y metadatos de seguimiento estables, integra lo mínimo de Jekyll y reemplaza el workflow Pages con el central. **No copia generadores ni JavaScript comunes**: GitHub Actions los obtiene en cada build. Si el curso ya tiene una identidad de LabControl, no repetir la migración inicial. Los respaldos de cambios técnicos permanecen locales y no deben incorporarse al commit.
+El instalador clona `webpagesrepo` **temporalmente**, crea identidad y metadatos de seguimiento estables, integra lo mínimo de Jekyll y reemplaza el workflow Pages con el central. **No copia generadores ni JavaScript comunes**: GitHub Actions los obtiene en cada build. Si el curso ya tiene una identidad de LabControl, no repetir la migración inicial. Los respaldos de cambios técnicos permanecen locales y no deben incorporarse al commit.
 
 ## Revisar y publicar la primera integración
 
@@ -120,9 +120,14 @@ git diff --stat
 git status --short
 # Revisar cuidadosamente labs/, course.identity.json y .github/workflows/pages.yml.
 # Confirmar que el diff de labs solo inserta metadata course_id/lab_id/tNNN/sNNN.
-git add -A
+# Revisar el inventario y agregar únicamente los archivos de integración esperados.
+git add .github/workflows/pages.yml _config.yml _layouts/ _includes/ _data/ labs/ course.identity.json
+# Si se creó index.md, agregarlo expresamente.
+if [ -f index.md ]; then git add index.md; fi
+# Si el migrador actualizó .gitignore, agregarlo.
+git add .gitignore 2>/dev/null || true
 git status --short
-# No incluir respaldos ni archivos ajenos al curso.
+# No incluir respaldos, archivos temporales ni archivos ajenos al curso.
 git diff --cached --check
 git diff --cached --stat
 git commit -m "feat(labcontrol): incorporar seguimiento y workflow central"
@@ -137,8 +142,47 @@ El workflow debe usar una sola ruta de publicación Pages y referirse a un commi
 
 1. Verificar que GitHub Actions finalizó en **Success**, y que se publicaron `<base>/course.identity.json` y `<base>/labcontrol/<trackingId>/course.json`.
 2. En LabControl elegir **Cursos → Registrar desde URL** con la **URL pública GitHub Pages**, no la del repositorio Git.
-3. Publicar el proof del challenge en `.well-known/labcontrol-course-link.txt` y confirmar antes de su vencimiento; nunca reutilizar proofs.
-4. Abrir detalle del curso y pulsar **Sincronizar todo**; se genera la revisión inicial `v1.0.0` al importar el primer catálogo.
+3. En **Continuar registro**, LabControl mostrará un token temporal de verificación (caduca a los **30 minutos**). Copiarlo exactamente en `.well-known/labcontrol-course-link.txt` en el repositorio del curso; no reutilizar el de otro curso ni insertar espacios. Publicar por GitHub Actions y comprobar la URL de verificación que muestra LabControl.
+4. Pulsar **Verificar y registrar curso** en LabControl mientras el token siga vigente. Si caduca, solicitar otro token y volver a publicar.
+5. Abrir el curso registrado y pulsar **Sincronizar todo**; se crea la primera revisión `v1.0.0` al importar el catálogo.
+
+### Publicación de la prueba de propiedad (solo después del primer build)
+
+**Git Bash / Linux — repositorio del curso, nunca webpagesrepo:**
+
+~~~bash
+mkdir -p .well-known
+# Pegar el token recién emitido por LabControl. Read impide registrarlo
+# en el historial de comandos; no copiar tokens de otro curso.
+read -r -p "Pega el token de verificación de LabControl: " CLAIM_PROOF
+printf '%s\n' "$CLAIM_PROOF" > .well-known/labcontrol-course-link.txt
+unset CLAIM_PROOF
+
+git add .well-known/labcontrol-course-link.txt
+git diff --cached --check
+git commit -m "chore(labcontrol): publicar verificacion de propiedad"
+git push origin main
+~~~
+
+**PowerShell — repositorio del curso:**
+
+~~~powershell
+New-Item -ItemType Directory -Force ".well-known" | Out-Null
+$ClaimProof = Read-Host "Pega el token de verificación de LabControl"
+[System.IO.File]::WriteAllText(
+  (Join-Path (Get-Location) ".well-known/labcontrol-course-link.txt"),
+  $ClaimProof + [Environment]::NewLine,
+  [System.Text.UTF8Encoding]::new($false)
+)
+Remove-Variable ClaimProof
+
+git add .well-known/labcontrol-course-link.txt
+git diff --cached --check
+git commit -m "chore(labcontrol): publicar verificacion de propiedad"
+git push origin main
+~~~
+
+La prueba es pública y efímera; no contiene credenciales de sesión. La URL publicada debe devolver exactamente el token, con como máximo un salto de línea final. **No pulsar confirmar hasta que GitHub Actions finalice en Success y se vea la prueba en la URL indicada.** La prueba vence en 30 minutos; si vence, generar otra y volver a publicar. No habilitar sincronización automática de catálogos en GitHub Actions. Tras registrar el curso, pulsar explícitamente **Sincronizar todo**.
 
 ## Cambios posteriores: LabControl es quien gobierna la versión
 
@@ -158,4 +202,4 @@ No hace falta crear un curso con la plantilla de `webpagesrepo`: se admiten repo
 
 El migrador inicial genera IDs estables, por lo que su aplicación necesita revisión de metadatos y respaldo (carpetas `.migration-backup-labcontrol/` y `.labcontrol-template-backup/` excluidas de Git). Un curso ya vinculado **no debe volver a migrarse** ni renumerarse automáticamente. El bootstrap inicial no garantiza compatibilidad con cualquier variante de Jekyll: si no reconoce estructura, falla sin inventar cambios. El origen GitHub Pages debe estar autorizado en la allowlist de la API. No copiar secretos ni pruebas de propiedad en repositorios de terceros.
 
-**Para próximos cursos, usar un proceso de incorporación única.** CKA-Priv- ya está integrado: no volver a ejecutar `--apply` para reproducir este procedimiento.
+**Para todos los cursos:** la incorporación inicial es única. No volver a ejecutar `--apply` del bootstrap en un repositorio ya integrado y con identificadores registrados en LabControl.
