@@ -40,6 +40,8 @@ def prepare_lab(path: Path, course_id: str, number: int) -> tuple[str, int, int]
                 raise ValueError(f"{path}: {field}={actual!r}, se esperaba {desired!r}")
         else:
             additions.append(f"{field}: {desired}\n")
+    if not re.search(r"(?m)^permalink\\s*:", fm):
+        additions.append(f"permalink: /lab{number}/lab{number}/\\n")
     header = "".join(additions)
     output_body = []
     task_no = 0
