@@ -25,8 +25,14 @@ export function prepareLayout(html) {
     if (b < 0 || a > b) throw Error('El contexto demo debe cargarse antes de lab-progress.js.');
     return html;
   }
-  if (!html.includes(progressScript)) throw Error('Falta script lab-progress.js en layout; integrar manualmente.');
-  return html.replace(progressScript, demoScript + '\n  ' + progressScript);
+  if (!html.includes(progressScript)) {
+    // Other Jekyll templates may not include LabControl loaders at all.
+    // Only insert into a recognized HTML layout; never replace course content.
+    const bodyEnd = /<\\/body\\s*>/i;
+    if (!bodyEnd.test(html)) throw Error('No se encontró cierre </body> ni loader de progreso en layout.');
+    return html.replace(bodyEnd, demoScript + '\\n  ' + progressScript + '\\n  </body>');
+  }
+  return html.replace(progressScript, demoScript + '\\n  ' + progressScript);
 }
 
 async function existingFile(path) {
