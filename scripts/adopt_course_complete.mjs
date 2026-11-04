@@ -61,13 +61,17 @@ async function assertIdentity() {
   if(prior.code!==code || prior.trackingId!==trackingId) throw Error('La identidad del curso ya existe y no coincide. No modificar IDs históricos.');
 }
 async function assertRepo() {
-  for (const p of ['.git','labs','_data/courses.yml','_config.yml','_layouts/lab.html','_layouts/default.html']) {
+  for (const p of ['.git','labs']) {
     if(!await exists(join(target,p))) throw Error('Falta ' + p + ' en el curso');
   }
   const status=spawnSync('git',['status','--porcelain'],{cwd:target,encoding:'utf8'});
   if(status.status!==0 || status.stdout.trim()) throw Error('El repositorio del curso debe estar limpio antes de aplicar cambios');
-  const catalog=await readFile(join(target,'_data/courses.yml'),'utf8');
-  if(!catalog.split(/\r?\n/).some(line=>line.trim()===trackingId+':')) throw Error('No aparece el tracking ID en _data/courses.yml; revisar identidad sin inventar metadatos');
+  // A missing catalog will be created by the scaffold. Never overwrite an existing one.
+  if (await exists(join(target,'_data/courses.yml'))) {
+    const catalog=await readFile(join(target,'_data/courses.yml'),'utf8');
+    if(!catalog.split(/\\r?\\n/).some(line=>line.trim()===trackingId+':'))
+      throw Error('El catálogo existente tiene otra identidad; no inventar metadatos');
+  }
 }
 const migrationArgs=['--template',source,'--target',target,'--course-id',trackingId];
 const changes = [];
@@ -109,6 +113,14 @@ async function commitPreparedFiles() {
 async function main() {
   await assertRepo();
   await assertIdentity();
+  // Prepare only Jekyll infrastructure missing from this repository.
+  const missingBase=['_config.yml','_data/courses.yml','_layouts/default.html','_layouts/lab.html','Gemfile'];
+  const needsScaffold=(await Promise.all(missingBase.map(p=>exists(join(target,p))))).some(ok=>!ok);
+  node('scaffold_missing_jekyll.mjs',['--target',target,'--tracking-id',trackingId,'--name',name,'--description',description,...(apply?['--apply']:[])]);
+  if(!apply && needsScaffold) {
+    console.log('DRY RUN de estructura base: revisar archivos a crear. Para instalación completa, repetir con --apply.');
+    return;
+  }
   const migrated=await hasLabTracking();
   if(!migrated && await exists(join(target,'_data/labcontrol-identities.yml')))
     throw Error('Identidades parcialmente migradas. Revisar manualmente; no sobrescribir.');
