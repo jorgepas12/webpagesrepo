@@ -69,7 +69,7 @@ async function assertRepo() {
   // A missing catalog will be created by the scaffold. Never overwrite an existing one.
   if (await exists(join(target,'_data/courses.yml'))) {
     const catalog=await readFile(join(target,'_data/courses.yml'),'utf8');
-    if(!catalog.split(/\\r?\\n/).some(line=>line.trim()===trackingId+':'))
+    if(!catalog.split(/\r?\n/).some(line=>line.trim()===trackingId+':'))
       throw Error('El catálogo existente tiene otra identidad; no inventar metadatos');
   }
 }
