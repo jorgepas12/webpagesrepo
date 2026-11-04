@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path.cwd()
 FRONT = re.compile(r"\A---\r?\n([\s\S]*?)\r?\n---(?:\r?\n)")
-META = re.compile(r"^(?:course_id|lab_id|tracking|position):\s*")
+META = re.compile(r"^(?:course_id|lab_id|tracking|position|lab_number):\s*")
 TASK = re.compile(r'^\s*{%\s*assign\s+tracking_task_id\s*=\s*["\']t\d{3}["\']\s*%}\s*$')
 STEP = re.compile(r'(\{%\s*include\s+step_label\.html)\s+id=["\']s\d{3}["\']')
 
@@ -24,6 +24,9 @@ def comparable(text, migrated):
     fm = match.group(1).splitlines()
     if migrated:
         fm = [x for x in fm if not META.match(x)]
+    else:
+        # lab_number may predate migration; compare academic content, not this field.
+        fm = [x for x in fm if not re.match(r"^lab_number:\\s*", x)]
     body = text[match.end():]
     if migrated:
         body = STEP.sub(r"\1", body)

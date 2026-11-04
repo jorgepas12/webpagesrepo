@@ -76,19 +76,9 @@ async function stageFile(rel,content) {
   if(prior!==content) changes.push({rel,dst,prior,content});
 }
 async function installFiles() {
-  // Refresh common technical assets from the central template, never course content.
-  const shared = [
-    '_includes/step_label.html',
-    'scripts/generate_lab_manifest.mjs',
-    'scripts/generate_course_catalog.mjs',
-    'scripts/repair_step_ids.mjs',
-    'scripts/lab_id_registry.mjs',
-    'scripts/normalize_course_labs.mjs',
-    'scripts/sync_lab_manifests.mjs',
-    'scripts/sync_course_catalog.mjs',
-    'scripts/read_course_identity.mjs',
-    'scripts/write_course_link_proof.mjs'
-  ];
+  // Stage ONLY persistent integration: tracking include, workflow and identity.
+  // Shared scripts and browser runtime are consumed from central CI checkout.
+  const shared = ['_includes/step_label.html'];
   for (const rel of shared) {
     await stageFile(rel, await readFile(join(source,rel),'utf8'));
   }
@@ -125,13 +115,13 @@ async function main() {
   console.log('Curso:',name,'| Tracking:',trackingId,'| Estado:',migrated?'ya migrado':'sin migrar');
   console.log('Modo:',apply?'APPLY':'DRY RUN');
   if(!migrated) python('migrate_existing_course.py',migrationArgs);
-  node('update_existing_course_runtime.mjs',['--target',target]);
+  node('update_existing_course_runtime.mjs',['--target',target,'--layout-only']);
   node('update_existing_course_layouts.mjs',['--target',target]);
   await installFiles();
   changes.forEach(x=>console.log(x.prior===null?'Crear:':'Actualizar:',x.rel));
   if(!apply) return console.log('DRY RUN completado. Sin archivos modificados; ejecuta --apply cuando esté aprobado.');
   if(!migrated) python('migrate_existing_course.py',[...migrationArgs,'--apply']);
-  node('update_existing_course_runtime.mjs',['--target',target,'--apply']);
+  node('update_existing_course_runtime.mjs',['--target',target,'--layout-only','--apply']);
   node('update_existing_course_layouts.mjs',['--target',target,'--apply']);
   await commitPreparedFiles();
   const ignore=join(target,'.gitignore');
@@ -142,12 +132,13 @@ async function main() {
   if(!migrated) python('verify_academic_integrity.py',[],target);
   node('verify_course_runtime.mjs',[target]);
   node('repair_step_ids.mjs',['--check','--root',target]);
-  node('generate_lab_manifest.mjs',['--all']);
-  node('generate_course_catalog.mjs');
-  node('test_lab_manifest.mjs');
-  node('test_course_catalog.mjs');
+  // Manifest/catalog are generated during the first Actions build, not committed on adoption.
+  // Tooling tests run in the central checkout; the target intentionally has no scripts/.
+  node('test_lab_manifest.mjs',[],source);
+  node('test_course_catalog.mjs',[],source);
   command('git',['diff','--check']);
-  console.log('ADOPCIÓN TÉCNICA LISTA. Validar Jekyll y diff; commit/push solo cuando lo apruebes.');
+  console.log('ADOPCIÓN MÍNIMA LISTA: identidad, tracking, layouts e integración CI.');
+  console.log('Revisar diff académico, commit/push; Actions generará manifests y catálogo al publicar.');
   console.log('URL prevista: https://netec-mx.github.io/'+(await readFile(join(target,'_config.yml'),'utf8')).match(/baseurl:\s*["']\/([^"']+)/)?.[1]+'/');
 }
 main().catch(e=>{console.error('ERROR:',e.message);process.exitCode=1;});

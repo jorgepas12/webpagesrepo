@@ -13,7 +13,10 @@ test('layout carga demo primero, es idempotente', () => {
   const updated = prepareLayout(baseLayout);
   assert.match(updated, /lab-demo-context\.js[\s\S]*lab-progress\.js/);
   assert.equal(prepareLayout(updated), updated);
-  assert.throws(() => prepareLayout('<p>sin seguimiento</p>'), /Falta script/);
+  const empty = prepareLayout('<html><body><p>sin seguimiento</p></body></html>');
+  assert.match(empty, /lab-demo-context\.js[\s\S]*lab-progress\.js/);
+  assert.equal(prepareLayout(empty), empty);
+  assert.throws(() => prepareLayout('<p>sin seguimiento</p>'), /cierre/);
 });
 
 test('curso existente: dry-run no toca labs; apply guarda respaldo; repetir es idempotente', async () => {

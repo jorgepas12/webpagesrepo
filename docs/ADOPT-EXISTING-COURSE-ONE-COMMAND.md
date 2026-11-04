@@ -22,12 +22,12 @@ bash /tmp/labcontrol-bootstrap.sh \
 ## Operaciones del bootstrap
 1. Rechaza destinos que no sean repositorios Git limpios o tengan identidad contradictoria.
 2. Ejecuta migrate_existing_course.py si los Labs no tienen tracking: respaldo académico e IDs estables.
-3. Actualiza el runtime (JS), step_label.html, scripts compartidos y los atributos de tracking del layout.
+3. Instala solamente el include de tracking y los hooks mínimos de layouts. NO copia JavaScript ni scripts centrales al repositorio del curso.
 4. Crea course.identity.json con código, trackingId, nombre y descripción exclusivos del curso.
 5. Actualiza exactamente el workflow existente pages.yml, tomando el patrón ya funcional de TRFRM_GCP_INT.
 6. Fija el checkout central del workflow a un commit inmutable de webpagesrepo.
-7. Verifica integridad de las instrucciones cuando la adopción es inicial, Step IDs, runtime, manifests, catálogo y diff.
-8. Deja el commit/push para la revisión normal del repositorio del curso.
+7. Verifica integridad de las instrucciones, Step IDs y los hooks del runtime; los manifests y el catálogo se generan en GitHub Actions después del push.
+8. Deja el commit/push para la revisión normal del repositorio del curso; no incorpora archivos JSON generados al primer commit.
 
 Las copias de seguridad locales se mantienen en .migration-backup-labcontrol y .labcontrol-template-backup, ignoradas por Git.
 No modificar esos respaldos hasta validar el proceso. Si una validación falla, no hacer commit:
@@ -56,4 +56,4 @@ Después, en el detalle del curso, usar **Sincronizar todo** para cargar los och
 - El token de sincronización (si se usa) se guarda como Secret en GitHub, jamás en scripts o archivos del curso.
 - La regeneración de manifests no debe renumerar Steps ya registrados.
 - Las sesiones con revisión congelada no se migran automáticamente.
-- Para actualizar una versión de runtime en un curso ya adoptado, ejecutar nuevamente el bootstrap desde un árbol Git limpio; conserva IDs.
+- Para actualizar el runtime en un curso ya adoptado, actualizar de forma controlada el SHA de `webpagesrepo` en su workflow, sin volver a migrar IDs.

@@ -49,12 +49,22 @@ test('fail closed when runtime loader is missing, with no partial writes', async
   } finally { await rm(dir,{recursive:true,force:true}); }
 });
 
-test('fail closed on symlink and do not modify content', async () => {
+test('fail closed on symlink and do not modify content', async (t) => {
   const dir = await fixture();
   try {
     await rm(join(dir,'assets/js/lab-progress.js'));
     const { symlink } = await import('node:fs/promises');
-    await symlink(join(dir,'labs/lab1/lab1.md'),join(dir,'assets/js/lab-progress.js'));
+    try {
+      await symlink(join(dir,'labs/lab1/lab1.md'),join(dir,'assets/js/lab-progress.js'));
+    } catch (error) {
+      // Standard Windows users may not have permission to create symlinks.
+      // Linux CI still executes this security assertion in full.
+      if (process.platform === 'win32' && ['EPERM','EACCES'].includes(error.code)) {
+        t.skip('Windows no permite crear symlinks; se verifica en GitHub Actions Linux');
+        return;
+      }
+      throw error;
+    }
     await assert.rejects(prepare(['--target',dir,'--apply']),/Ruta insegura/);
     assert.equal(await readFile(join(dir,'labs/lab1/lab1.md'),'utf8'),'# Original instructions\n');
   } finally { await rm(dir,{recursive:true,force:true}); }
