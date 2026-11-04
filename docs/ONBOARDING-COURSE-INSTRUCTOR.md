@@ -31,27 +31,27 @@ El bootstrap **exige estado Git limpio** antes de la migración técnica.
 Desde **la raíz del repositorio del curso**, reemplazar los valores de ejemplo con los datos de ese curso:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/jorgepas12/webpagesrepo/main/scripts/bootstrap_existing_course.sh -o labcontrol-bootstrap.sh
+curl -fsSL https://raw.githubusercontent.com/jorgepas12/webpagesrepo/main/scripts/bootstrap_existing_course.sh -o /tmp/labcontrol-bootstrap.sh
 
 # 1. Simulación; no modifica ningún archivo
-bash labcontrol-bootstrap.sh \
+bash /tmp/labcontrol-bootstrap.sh \
   --tracking-id ckapriv \
   --code CKA_PRIV \
   --name "Administración, despliegue y preparación para CKA" \
   --description "Curso de administración y preparación CKA con 8 prácticas de Kubernetes."
 
 # 2. Aplicación, solo después de revisar la simulación
-bash labcontrol-bootstrap.sh \
+bash /tmp/labcontrol-bootstrap.sh \
   --tracking-id ckapriv \
   --code CKA_PRIV \
   --name "Administración, despliegue y preparación para CKA" \
   --description "Curso de administración y preparación CKA con 8 prácticas de Kubernetes." \
   --apply
 
-rm labcontrol-bootstrap.sh
+rm /tmp/labcontrol-bootstrap.sh
 ```
 
-**Nota:** el wrapper se descarga en la raíz temporalmente; elimínalo antes de registrar cambios. No se crea una dependencia Git persistente con `webpagesrepo`.
+**Nota:** el wrapper se descarga en `/tmp` para mantener limpio el repositorio; elimínalo después de aplicar. No se crea una dependencia Git persistente con `webpagesrepo`.
 
 ## Opción B: Windows PowerShell
 
