@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: jorgepas12/webpagesrepo
-          ref: feat/central-course-onboarding-cka
+          ref: main
           path: .central-webpagesrepo
           persist-credentials: false
 
