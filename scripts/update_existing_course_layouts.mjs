@@ -26,7 +26,13 @@ const replacement=`<article class="lab"
 function update(path,original){
   if(path.endsWith('default.html')){
     if(original.includes(tracker)) return original;
-    if(!original.includes(anchor)) throw Error('Punto de carga lab-progress.js no encontrado en default.html');
+    if(!original.includes(anchor)) {
+      // For course templates without LabControl, insert all loaders in order.
+      const endBody=/<\\/body\\s*>/i;
+      if(!endBody.test(original)) throw Error('Layout sin cierre body ni loader existente; revisar manualmente');
+      const demo='<script src="{{ site.baseurl }}/assets/js/lab-demo-context.js"></script>';
+      return original.replace(endBody, demo+'\\n  '+anchor+'\\n  '+tracker+'\\n</body>');
+    }
     return original.replace(anchor,anchor+'\n  '+tracker);
   }
   if(original.includes('data-course-id') && original.includes('data-lab-id') && original.includes('data-tracking-api') && original.includes('data-tracking')) return original;
