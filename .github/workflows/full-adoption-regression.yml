@@ -66,3 +66,29 @@ jobs:
           node -e 'const f=require("node:fs"),p=process.env.COURSE_DIR;const x=JSON.parse(f.readFileSync(p+"/course.identity.json"));if(x.code!=="CKA_PRIV"||x.trackingId!=="ckapriv")process.exit(1);const c=JSON.parse(f.readFileSync(p+"/labcontrol/ckapriv/course.json"));if(c.labs.length!==8)process.exit(1);'
           test -f "$COURSE_DIR/.github/workflows/pages.yml"
           git -C "$COURSE_DIR" diff --check
+
+      - name: Setup Ruby and Jekyll
+        uses: ruby/setup-ruby@v1
+        env:
+          BUNDLE_GEMFILE: ${{ runner.temp }}/cka-adoption/Gemfile
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Build adopted CKA site
+        working-directory: ${{ runner.temp }}/cka-adoption
+        env:
+          BUNDLE_GEMFILE: ${{ runner.temp }}/cka-adoption/Gemfile
+        run: bundle exec jekyll build --trace
+
+      - name: Validate published course content
+        env:
+          COURSE_DIR: ${{ runner.temp }}/cka-adoption
+        run: |
+          test -s "$COURSE_DIR/_site/course.identity.json"
+          test -s "$COURSE_DIR/_site/labcontrol/ckapriv/course.json"
+          test -s "$COURSE_DIR/_site/lab1/lab1/index.html"
+          test -s "$COURSE_DIR/_site/assets/js/lab-tracker.js"
+          for n in 1 2 3 4 5 6 7 8; do
+            test -s "$COURSE_DIR/_site/labcontrol/ckapriv/content/$(printf 'l%03d' "$n").json"
+          done
