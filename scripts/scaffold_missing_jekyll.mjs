@@ -100,6 +100,7 @@ title: ${JSON.stringify(name)}
 };
 const missing=[];
 for(const [path,content] of Object.entries(files)){
+  if(path==='index.md' && (await exists('index.html') || await exists('index.markdown')))continue;
   if(!await exists(path))missing.push({path,content});
 }
 console.log('Curso:',owner+'/'+repo,'| Labs:',labs.length,'| Modo:',apply?'APPLY':'DRY RUN');
