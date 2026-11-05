@@ -15,6 +15,9 @@
 5. [RUNTIME-LIFECYCLE.md](02-architecture/RUNTIME-LIFECYCLE.md): mantenimiento, actualización por SHA y rollback del runtime central.
 6. [ROLLBACK-AND-RECOVERY.md](04-operations/ROLLBACK-AND-RECOVERY.md): recuperación segura de fallas de publicación, snapshots, tracking y workflows.
 7. [TROUBLESHOOTING.md](04-operations/TROUBLESHOOTING.md): diagnóstico rápido, síntomas y validaciones de integración.
+8. [SECURITY.md](03-integration/SECURITY.md): secretos, permisos y límites de confianza.
+9. [TESTING-AND-RELEASE.md](04-operations/TESTING-AND-RELEASE.md): matriz de pruebas y criterios para liberar cambios.
+10. [INSTRUCTOR-QUICKSTART.md](../INSTRUCTOR-QUICKSTART.md): procedimiento mínimo para cursos nuevos, existentes y ya integrados.
 
 ## Guías operativas vigentes
 
@@ -36,4 +39,4 @@
 
 ## Deuda documental para siguientes fases
 
-**Pendiente fase 3/4:** política de seguridad de secretos y autorización, matriz formal de pruebas/releases y quickstart de instructor. Los procedimientos de incidentes/rollback se integraron en fase 2. Contrastar estas especificaciones contra los despliegues de cursos reales antes de convertirlas en una política operativa general. Contrastar estas especificaciones contra despliegues de cursos reales antes de elevarlas a una política operativa general.
+**Fases documentales 1–4 disponibles:** arquitectura, contratos, operación, recuperación, seguridad, pruebas y guía de instructor. **Pendiente fuera del alcance documental:** validar despliegues específicos de cursos, corregir las automatizaciones riesgosas mediante cambios funcionales separados y mantener actualizadas las guías conforme evolucione el runtime. Contrastar estas especificaciones contra despliegues de cursos reales antes de elevarlas a una política operativa general.
