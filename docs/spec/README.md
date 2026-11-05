@@ -12,6 +12,9 @@
 2. [AUTOMATION-CONTRACT.md](02-architecture/AUTOMATION-CONTRACT.md): efectos y límites de GitHub Actions, reparación de Steps y sincronización legacy.
 3. [CATALOG-CONTRACT.md](03-integration/CATALOG-CONTRACT.md): contenido y semántica del catálogo, manifests, snapshots y hashes.
 4. [VERSIONING-AND-COMPATIBILITY.md](03-integration/VERSIONING-AND-COMPATIBILITY.md): publicación, revisiones congeladas, pinning y compatibilidad.
+5. [RUNTIME-LIFECYCLE.md](02-architecture/RUNTIME-LIFECYCLE.md): mantenimiento, actualización por SHA y rollback del runtime central.
+6. [ROLLBACK-AND-RECOVERY.md](04-operations/ROLLBACK-AND-RECOVERY.md): recuperación segura de fallas de publicación, snapshots, tracking y workflows.
+7. [TROUBLESHOOTING.md](04-operations/TROUBLESHOOTING.md): diagnóstico rápido, síntomas y validaciones de integración.
 
 ## Guías operativas vigentes
 
@@ -33,4 +36,4 @@
 
 ## Deuda documental para siguientes fases
 
-Agregar guía de incidentes y rollback, seguridad de secretos y autorización, matriz de pruebas/releases, y quickstart de instructor. Contrastar estas especificaciones contra despliegues de cursos reales antes de elevarlas a una política operativa general.
+**Pendiente fase 3/4:** política de seguridad de secretos y autorización, matriz formal de pruebas/releases y quickstart de instructor. Los procedimientos de incidentes/rollback se integraron en fase 2. Contrastar estas especificaciones contra los despliegues de cursos reales antes de convertirlas en una política operativa general. Contrastar estas especificaciones contra despliegues de cursos reales antes de elevarlas a una política operativa general.
