@@ -10,6 +10,10 @@ Este repositorio es el **origen de las herramientas compartidas** de creación, 
 - **Vincular la URL a Lab Control:** [challenge y proof propio en `.well-known`](docs/COURSE-LINK-WELL-KNOWN.md).
 - **Versionado, snapshots y sesiones:** [ciclo de revisiones congeladas](docs/labcontrol-course-revision-lifecycle.md).
 
+## Arquitectura y contratos SPEC
+
+La [documentación técnica SPEC](docs/spec/README.md) describe responsabilidades, automatizaciones, contratos de catálogo y límites del versionado por sesión. Complementa las guías operativas y registra diferencias entre comportamiento implementado y políticas todavía pendientes.
+
 ## Componentes compartidos
 
 - `assets/js/lab-demo-context.js`: práctica del instructor, local y aislada del progreso oficial.
@@ -29,4 +33,4 @@ No se editan las instrucciones pedagógicas de cursos existentes como parte de u
 
 Antes de generar manifests, utiliza `node scripts/repair_step_ids.mjs --check`. Para detectar y corregir duplicados/saltos con revisión humana, consulta [guía de Step IDs](docs/STEP-ID-REPAIR.md). El modo `--apply` es explícito, crea respaldos y debe evaluarse frente al progreso histórico de Lab Control.
 
-**Automatización al publicar:** en `push main`, si no hay conexión de sincronización Lab Control configurada, GitHub Actions detecta e inserta/corrige los Step IDs y guarda los cambios con `github-actions[bot]` antes de generar manifests y Pages. Si el curso está configurado para sincronizar con Lab Control, se bloquea la renumeración automática para proteger progreso existente. Consultar [guía de reparación](docs/STEP-ID-REPAIR.md).
+**Automatización al publicar:** en `push main`, si no hay conexión de sincronización Lab Control configurada, GitHub Actions detecta e inserta/corrige los Step IDs y guarda los cambios con `github-actions[bot]` antes de generar manifests y Pages. Si GitHub Actions detecta variables de sincronización Lab Control, se bloquea la renumeración automática para proteger progreso existente. **Advertencia:** que esas variables estén ausentes no garantiza que el curso carezca de progreso histórico; los cursos ya utilizados con LabControl requieren revisión de IDs antes de habilitar ese mecanismo. Consultar [guía de reparación](docs/STEP-ID-REPAIR.md).
