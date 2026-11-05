@@ -4,6 +4,7 @@ Este repositorio es el **origen de las herramientas compartidas** de creación, 
 
 ## Selecciona tu flujo
 
+- **Guía rápida del instructor:** [publicar y actualizar sin administrar la plantilla](docs/INSTRUCTOR-QUICKSTART.md).
 - **Curso nuevo:** [crear identidad y Labs](docs/INITIALIZE-COURSE.md).
 - **Curso existente sin tracking:** [migrar sin modificar instrucciones académicas](EXISTING-COURSE-MIGRATION.md).
 - **Curso ya adaptado:** [actualizar runtime de seguimiento/instructor con respaldo](docs/COURSE-TEMPLATE-WORKFLOWS.md).
