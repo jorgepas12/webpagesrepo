@@ -80,9 +80,15 @@ async function stageFile(rel,content) {
   if(prior!==content) changes.push({rel,dst,prior,content});
 }
 async function installFiles() {
-  // Stage ONLY persistent integration: tracking include, workflow and identity.
-  // Shared scripts and browser runtime are consumed from central CI checkout.
-  const shared = ['_includes/step_label.html'];
+  // Keep shared JS in the course checkout for local Jekyll serving.
+  // CI still replaces these files with the same pinned central commit.
+  // Never copy central scripts or overwrite academic Labs.
+  const shared = [
+    '_includes/step_label.html',
+    'assets/js/lab-demo-context.js',
+    'assets/js/lab-progress.js',
+    'assets/js/lab-tracker.js',
+  ];
   for (const rel of shared) {
     await stageFile(rel, await readFile(join(source,rel),'utf8'));
   }
