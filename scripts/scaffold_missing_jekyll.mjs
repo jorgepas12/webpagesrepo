@@ -107,10 +107,12 @@ async function hasExistingRootPage() {
   try { entries = await readdir(courseDir, { withFileTypes: true }); }
   catch (error) { if (error.code === 'ENOENT') return false; throw error; }
   for (const entry of entries) {
-    if (!entry.isFile() || !/\\.(md|markdown|html)$/i.test(entry.name)) continue;
+    if (!entry.isFile() || !/\.(md|markdown|html)$/i.test(entry.name)) continue;
     const body = await readFile(join(courseDir, entry.name), 'utf8');
-    const frontmatter = body.match(/^---\\s*\\r?\\n([\\s\\S]*?)\\r?\\n---(?:\\r?\\n|$)/)?.[1] ?? '';
-    if (/^permalink:\\s*['"]?\\/['"]?\\s*(?:#.*)?$/m.test(frontmatter)) return true;
+    const frontmatter = body.match(/^---\s*\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)?.[1] ?? '';
+    const permalink = frontmatter.match(/^permalink:\s*(.*)$/m)?.[1]
+      ?.split('#')[0]?.trim().replace(/^['"]|['"]$/g, '');
+    if (permalink === '/') return true;
   }
   return false;
 }
