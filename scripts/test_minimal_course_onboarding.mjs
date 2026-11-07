@@ -12,7 +12,7 @@ function run(bin, argv, cwd) {
   return result.stdout;
 }
 
-test('nuevo curso Jekyll independiente: incorporación mínima, tracking estable y sin scripts locales', async () => {
+test('nuevo curso Jekyll independiente: incorpora runtime local, tracking estable y sin scripts locales', async () => {
   const root = await mkdtemp(join(tmpdir(), 'course-minimal-onboarding-'));
   try {
     for (const path of ['labs/lab1','_layouts','_data']) await mkdir(join(root,path),{recursive:true});
@@ -40,7 +40,9 @@ test('nuevo curso Jekyll independiente: incorporación mínima, tracking estable
     assert.equal(files.includes('labcontrol'),false,'El catálogo se genera únicamente en CI');
     assert.equal(files.includes('.labcontrol'),false,'Los manifests se generan únicamente en CI');
     assert.equal(files.includes('scripts'),false,'No se deben copiar scripts locales');
-    assert.equal((await readdir(join(root,'assets/js')).catch(()=>[])).length,0,'JS lo prepara Actions');
+    assert.deepEqual((await readdir(join(root,'assets/js'))).sort(),[
+      'lab-demo-context.js','lab-progress.js','lab-tracker.js',
+    ]);
     assert.ok((await readFile(join(root,'_layouts/default.html'),'utf8')).includes('lab-tracker.js'));
     assert.ok((await readFile(join(root,'.github/workflows/pages.yml'),'utf8')).includes('prepare_course_build.mjs'));
     const markdown=await readFile(join(root,'labs/lab1/lab1.md'),'utf8');
@@ -56,7 +58,7 @@ test('nuevo curso Jekyll independiente: incorporación mínima, tracking estable
     assert.equal(catalog.labs.length,1);
     assert.equal(catalog.labs[0].manifest.tasks.length,2);
     assert.equal(catalog.labs[0].manifest.tasks.flatMap(t=>t.steps).length,2);
-    // The builder consumes central scripts and JS without persisting them in course Git.
+    // The builder consumes the same pinned central files; local Jekyll is ready too.
     const tooling=resolve('scripts/prepare_course_build.mjs');
     run(process.execPath,[tooling,'--target',root,'--apply'],root);
     assert.equal((await stat(join(root,'assets/js/lab-progress.js'))).isFile(),true);

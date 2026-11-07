@@ -98,9 +98,28 @@ title: ${JSON.stringify(name)}
 {% endfor %}
 `
 };
+// Course templates normally use curso/<trackingId>.md with permalink: /.
+// Jekyll must not have a second root page generated as index.md.
+async function hasExistingRootPage() {
+  if (await exists('index.html') || await exists('index.markdown') || await exists('index.md')) return true;
+  const courseDir = join(target, 'curso');
+  let entries;
+  try { entries = await readdir(courseDir, { withFileTypes: true }); }
+  catch (error) { if (error.code === 'ENOENT') return false; throw error; }
+  for (const entry of entries) {
+    if (!entry.isFile() || !/\.(md|markdown|html)$/i.test(entry.name)) continue;
+    const body = await readFile(join(courseDir, entry.name), 'utf8');
+    const frontmatter = body.match(/^---\s*\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)?.[1] ?? '';
+    const permalink = frontmatter.match(/^permalink:\s*(.*)$/m)?.[1]
+      ?.split('#')[0]?.trim().replace(/^['"]|['"]$/g, '');
+    if (permalink === '/') return true;
+  }
+  return false;
+}
+const hasRootPage = await hasExistingRootPage();
 const missing=[];
 for(const [path,content] of Object.entries(files)){
-  if(path==='index.md' && (await exists('index.html') || await exists('index.markdown')))continue;
+  if(path==='index.md' && hasRootPage)continue;
   if(!await exists(path))missing.push({path,content});
 }
 console.log('Curso:',owner+'/'+repo,'| Labs:',labs.length,'| Modo:',apply?'APPLY':'DRY RUN');

@@ -48,7 +48,7 @@ test('scaffold dry-run no cambia archivos, apply crea solo faltantes',async()=>{
     assert.equal(await readFile(join(root,'_layouts/default.html'),'utf8'),'CUSTOM NEVER REPLACE');
   } finally {await rm(root,{recursive:true,force:true});}
 });
-test('adopter integra un curso con solo labs, sin copiar scripts ni JS',async()=>{
+test('adopter integra un curso con solo labs, sin copiar scripts y con JS local',async()=>{
   const {root}=await seed();
   try{
     const command=[ADOPT,'--target',root,'--tracking-id','demosinplantilla','--code','DEMO_SIN_PLANTILLA','--name','Demo sin plantilla'];
@@ -60,7 +60,9 @@ test('adopter integra un curso con solo labs, sin copiar scripts ni JS',async()=
     assert.ok((await stat(join(root,'_config.yml'))).isFile());
     assert.ok((await stat(join(root,'.github/workflows/pages.yml'))).isFile());
     assert.equal((await readdir(root)).includes('scripts'),false);
-    assert.equal((await readdir(root)).includes('assets'),false);
+    assert.ok((await stat(join(root,'assets/js/lab-demo-context.js'))).isFile());
+    assert.ok((await stat(join(root,'assets/js/lab-progress.js'))).isFile());
+    assert.ok((await stat(join(root,'assets/js/lab-tracker.js'))).isFile());
     const course=JSON.parse(await readFile(join(root,'course.identity.json')));
     assert.equal(course.trackingId,'demosinplantilla');
     const md=await readFile(join(root,'labs/lab1/lab1.md'),'utf8');
@@ -104,4 +106,17 @@ test('Markdown sin frontmatter: añade metadata Jekyll y preserva instrucciones 
     assert.match(migrated,/Ejecutar comando/);
     assert.match(migrated,/id="s001"/);
   }finally{await rm(root,{recursive:true,force:true});}
+});
+
+test('scaffold preserves curso/<trackingId>.md permalink root and does not introduce index.md',async()=>{
+  const {root,markdown}=await seed();
+  try {
+    await mkdir(join(root,'curso'),{recursive:true});
+    const portada = '---\nlayout: course\ncourse_id: demosinplantilla\npermalink: /\n---\nPortada oficial\n';
+    await writeFile(join(root,'curso/demosinplantilla.md'),portada);
+    run(process.execPath,args(root,['--apply']),root);
+    assert.equal((await readdir(root)).includes('index.md'),false);
+    assert.equal(await readFile(join(root,'curso/demosinplantilla.md'),'utf8'),portada);
+    assert.equal(await readFile(join(root,'labs/lab1/lab1.md'),'utf8'),markdown);
+  } finally {await rm(root,{recursive:true,force:true});}
 });
