@@ -39,7 +39,7 @@ jobs:
           node --check scripts/verify_course_runtime.mjs
           bash -n scripts/bootstrap_existing_course.sh
 
-      - name: Test new Jekyll course with no LabControl and no copied scripts
+      - name: Test new Jekyll course with pinned local runtime and no copied scripts
         run: |
           python3 -m unittest scripts/test_migrate_existing_course.py
           node --test scripts/test_minimal_course_onboarding.mjs
@@ -73,7 +73,7 @@ jobs:
         env:
           COURSE_DIR: ${{ runner.temp }}/cka-adoption
         run: |
-          # CKA no longer versions JS or generated JSON: emulate full Pages build.
+          # Existing courses may lack JS: adoption now restores local copies; CI remains authoritative.
           node scripts/prepare_course_build.mjs --target "$COURSE_DIR" --apply
           # Simulate the first course build with central generators, not local scripts.
           (cd "$COURSE_DIR" && node "$GITHUB_WORKSPACE/scripts/generate_lab_manifest.mjs" --all && node "$GITHUB_WORKSPACE/scripts/generate_course_catalog.mjs")
@@ -81,6 +81,10 @@ jobs:
           node scripts/repair_step_ids.mjs --check --root "$COURSE_DIR"
           node -e 'const f=require("node:fs"),p=process.env.COURSE_DIR;const x=JSON.parse(f.readFileSync(p+"/course.identity.json"));if(x.code!=="CKA_PRIV"||x.trackingId!=="ckapriv")process.exit(1);const c=JSON.parse(f.readFileSync(p+"/labcontrol/ckapriv/course.json"));if(c.labs.length!==8)process.exit(1);'
           test -f "$COURSE_DIR/.github/workflows/pages.yml"
+          test ! -e "$COURSE_DIR/index.md"
+          for file in lab-demo-context.js lab-progress.js lab-tracker.js; do
+            test -s "$COURSE_DIR/assets/js/$file"
+          done
           git -C "$COURSE_DIR" diff --check
 
       - name: Setup Ruby and Jekyll
@@ -104,7 +108,10 @@ jobs:
           test -s "$COURSE_DIR/_site/course.identity.json"
           test -s "$COURSE_DIR/_site/labcontrol/ckapriv/course.json"
           test -s "$COURSE_DIR/_site/lab1/lab1/index.html"
-          test -s "$COURSE_DIR/_site/assets/js/lab-tracker.js"
+          for file in lab-demo-context.js lab-progress.js lab-tracker.js; do
+            test -s "$COURSE_DIR/_site/assets/js/$file"
+          done
+          test "$(grep -c 'class="lab-card"' "$COURSE_DIR/_site/index.html")" -eq 8
           for n in 1 2 3 4 5 6 7 8; do
             test -s "$COURSE_DIR/_site/labcontrol/ckapriv/content/$(printf 'l%03d' "$n").json"
           done
