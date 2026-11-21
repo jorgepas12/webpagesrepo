@@ -39,6 +39,30 @@
 
   let flushingQueue = false;
   let accessBlocked = false;
+  let sessionNoticeShown = false;
+
+  // Aviso compacto: no confundir una caída de red con una sesión revocada.
+  function showSessionNotice() {
+    if (sessionNoticeShown || window.LabControlDemo?.isActive()) return;
+    sessionNoticeShown = true;
+
+    const notice = document.createElement("div");
+    notice.setAttribute("role", "alert");
+    notice.setAttribute("id", "labcontrol-session-notice");
+    notice.style.cssText = "position:sticky;top:0;z-index:99999;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 14px;background:#fff1f2;color:#9f1239;border-bottom:2px solid #fb7185;font:14px/1.4 system-ui,sans-serif";
+
+    const message = document.createElement("span");
+    message.textContent = "Sesión sin acceso. Tu progreso ya no se está guardando. Inicia sesión nuevamente para continuar.";
+
+    const login = document.createElement("a");
+    login.href = "https://labcontrol.superwebapp.com/join";
+    login.textContent = "Iniciar sesión";
+    login.style.cssText = "display:inline-block;padding:7px 12px;border-radius:6px;background:#2563eb;color:white;text-decoration:none;font-weight:600";
+
+    notice.appendChild(message);
+    notice.appendChild(login);
+    document.body.prepend(notice);
+  }
 
   /* ---------------------------------------------------------
      Utilidades
@@ -445,6 +469,7 @@
       401
     ) {
       removeAccessToken();
+      showSessionNotice();
 
       return {
         available:
@@ -474,16 +499,7 @@
     if (
       result.unauthorized
     ) {
-      const returnUrl =
-        sessionStorage.getItem(
-          RETURN_URL_KEY
-        );
-
-      if (returnUrl) {
-        window.location.href =
-          returnUrl;
-      }
-
+      // La salida ahora es manual mediante el enlace del aviso.
       return false;
     }
 
@@ -845,6 +861,12 @@
       PROGRESS_CHANGE_EVENT,
       event => {
         if (accessBlocked) return;
+        // Una práctica directa sin token muestra el aviso al marcar el Step,
+        // sin consultar a la API ni descartar la cola offline.
+        if (getApiBaseUrl(root) && !getAccessToken()) {
+          showSessionNotice();
+          return;
+        }
         const detail =
           event.detail;
 
