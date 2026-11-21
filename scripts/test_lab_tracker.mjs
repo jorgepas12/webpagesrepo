@@ -265,12 +265,18 @@ function createBrowser({
     },
   };
 
-  document.createElement = () => ({
-    setAttribute() {},
+  const renderedNotices = [];
+  document.createElement = tag => ({
+    tag,
+    setAttribute(name, value) { this[name] = value; },
+    appendChild(child) { (this.children ??= []).push(child); },
     style: {},
     textContent: '',
   });
-  document.body = { appendChild() {} };
+  document.body = {
+    appendChild(node) { renderedNotices.push(node); },
+    prepend(node) { renderedNotices.unshift(node); },
+  };
 
   document.readyState =
     'complete';
@@ -352,6 +358,7 @@ function createBrowser({
     navigator,
     root,
     steps,
+    renderedNotices,
   };
 }
 
@@ -381,6 +388,82 @@ const QUEUE_KEY =
   'terraform-aws-essentials:' +
   'l001';
 
+
+await test(
+  '401 muestra aviso compacto con enlace y no redirige automáticamente',
+  async () => {
+    const localStorage = new MemoryStorage();
+    const sessionStorage = new MemoryStorage({
+      [ACCESS_TOKEN_KEY]: 'revoked-token',
+    });
+    let patchCount = 0;
+    const browser = createBrowser({
+      localStorage, sessionStorage,
+      fetchImpl: async (url) => {
+        if (url.endsWith('/tracking/step')) {
+          patchCount += 1;
+          return createResponse({ status: 401 });
+        }
+        if (url.endsWith('/tracking/progress')) return createResponse({ body: { labs: [] } });
+        throw new Error('Unexpected URL: ' + url);
+      },
+    });
+    browser.document.dispatchEvent(new FakeCustomEvent('lab-progress-change', {
+      detail: { labId: 'l001', changes: [
+        { taskId: 't001', stepId: 's001', isCompleted: true },
+      ] },
+    }));
+    await settle();
+    assert(patchCount === 1, 'Debe recibir 401 en el intento de Step.');
+    assert(sessionStorage.getItem(ACCESS_TOKEN_KEY) === null,
+      'El token revocado debe eliminarse de sessionStorage.');
+    assert(browser.renderedNotices.length === 1,
+      'Debe renderizarse un solo aviso compacto.');
+    const notice = browser.renderedNotices[0];
+    assert(notice.role === 'alert', 'El aviso debe ser accesible.');
+    assert(notice.children[0].textContent.includes('Tu progreso ya no se está guardando'),
+      'Debe informar que no se está guardando el progreso.');
+    assert(notice.children[1].href === 'https://labcontrol.superwebapp.com/join',
+      'El enlace debe abrir /join.');
+    assert(browser.window.location.href === undefined,
+      'No se permite una redirección automática.');
+    browser.document.dispatchEvent(new FakeCustomEvent('lab-progress-change', {
+      detail: { labId: 'l001', changes: [
+        { taskId: 't001', stepId: 's002', isCompleted: true },
+      ] },
+    }));
+    await settle();
+    assert(browser.renderedNotices.length === 1,
+      'Marcar Steps adicionales no debe duplicar el aviso.');
+    assert(patchCount === 1, 'No debe enviar nuevos Steps sin token válido.');
+  },
+);
+
+await test(
+  'intentar marcar un Step sin token muestra el aviso sin llamar a la API',
+  async () => {
+    const localStorage = new MemoryStorage();
+    const sessionStorage = new MemoryStorage();
+    let fetchCalls = 0;
+    const browser = createBrowser({
+      localStorage, sessionStorage,
+      fetchImpl: async () => {
+        fetchCalls += 1;
+        throw new Error('No debe llamar a la API');
+      },
+    });
+    assert(browser.renderedNotices.length === 0,
+      'No debe mostrar aviso al abrir sin intentar marcar.');
+    browser.document.dispatchEvent(new FakeCustomEvent('lab-progress-change', {
+      detail: { labId: 'l001', changes: [
+        { taskId: 't001', stepId: 's001', isCompleted: true },
+      ] },
+    }));
+    await settle();
+    assert(fetchCalls === 0, 'Sin token no debe consultar la API.');
+    assert(browser.renderedNotices.length === 1, 'Debe mostrar el aviso al marcar.');
+  },
+);
 
 await test(
   '403 bloquea y descarta cambios rechazados sin reenvío posterior',
