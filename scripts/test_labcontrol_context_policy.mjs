@@ -31,4 +31,4 @@ assert.equal(
   "netec:labcontrol:trackingQueue:v1:session-1:enrollment-a:course:l001"
 );
 assert.ok(!keyA.includes("secret"));
-console.log("Contexto #130: 12 aserciones PASS (modo público, demo, oficial pendiente, claves aisladas).");
+console.log("Contexto #130: aserciones PASS (modo público, demo, oficial pendiente, claves aisladas).");
