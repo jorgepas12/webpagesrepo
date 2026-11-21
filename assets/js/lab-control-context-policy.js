@@ -6,7 +6,7 @@
 (function (root) {
   "use strict";
 
-  function classifyContext(fragment, demoSessionId) {
+  function classifyContext(fragment) {
     const hash = typeof fragment === "string"
       ? fragment.replace(/^#/, "") : "";
     const params = new URLSearchParams(hash);
@@ -15,11 +15,7 @@
 
     // Dos señales contradictorias no deben activar ningún modo privilegiado.
     if (access && demo) return { mode: "invalid", reason: "conflicting-context" };
-    if (demo) {
-      return demoSessionId && demo === demoSessionId
-        ? { mode: "demo", sessionId: demo }
-        : { mode: "demo", sessionId: demo };
-    }
+    if (demo) return { mode: "demo", sessionId: demo };
     if (access) return { mode: "pending-participant" };
     // Ni lab-return ni un token residual de sessionStorage habilitan el modo oficial.
     return { mode: "public" };
