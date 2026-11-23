@@ -11,28 +11,36 @@ import { randomUUID } from 'node:crypto';
 const templateRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const allowed = [
   'assets/js/lab-demo-context.js',
+  'assets/js/lab-control-context-policy.js',
+  'assets/js/lab-control-context.js',
   'assets/js/lab-progress.js',
   'assets/js/lab-tracker.js'
 ];
 const layoutPath = '_layouts/default.html';
 const demoScript = '<script src="{{ site.baseurl }}/assets/js/lab-demo-context.js"></script>';
+const policyScript = '<script src="{{ site.baseurl }}/assets/js/lab-control-context-policy.js"></script>';
+const contextScript = '<script src="{{ site.baseurl }}/assets/js/lab-control-context.js"></script>';
 const progressScript = '<script src="{{ site.baseurl }}/assets/js/lab-progress.js"></script>';
 
 export function prepareLayout(html) {
-  if (html.includes(demoScript)) {
-    const a = html.indexOf(demoScript);
-    const b = html.indexOf(progressScript);
-    if (b < 0 || a > b) throw Error('El contexto demo debe cargarse antes de lab-progress.js.');
-    return html;
+  const required = [demoScript, policyScript, contextScript, progressScript];
+  let updated = html;
+  if (!updated.includes(progressScript)) {
+    const bodyEnd = /<\\/body\\s*>/i;
+    if (!bodyEnd.test(updated)) throw Error('No se encontró cierre </body> ni loader de progreso en layout.');
+    updated = updated.replace(bodyEnd, required.join('\\n  ') + '\\n  </body>');
+  } else {
+    const missing = required.slice(0, -1).filter(script => !updated.includes(script));
+    if (missing.length) updated = updated.replace(progressScript,
+      missing.join('\\n  ') + '\\n  ' + progressScript);
   }
-  if (!html.includes(progressScript)) {
-    // Other Jekyll templates may not include LabControl loaders at all.
-    // Only insert into a recognized HTML layout; never replace course content.
-    const bodyEnd = /<\/body\s*>/i;
-    if (!bodyEnd.test(html)) throw Error('No se encontró cierre </body> ni loader de progreso en layout.');
-    return html.replace(bodyEnd, demoScript + '\n  ' + progressScript + '\n  </body>');
+  let previous = -1;
+  for (const script of required) {
+    const index = updated.indexOf(script);
+    if (index < 0 || index <= previous) throw Error('Orden inseguro de loaders de LabControl.');
+    previous = index;
   }
-  return html.replace(progressScript, demoScript + '\n  ' + progressScript);
+  return updated;
 }
 
 async function existingFile(path) {
