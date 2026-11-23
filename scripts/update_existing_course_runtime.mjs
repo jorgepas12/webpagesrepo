@@ -26,7 +26,7 @@ export function prepareLayout(html) {
   const required = [demoScript, policyScript, contextScript, progressScript];
   let updated = html;
   if (!updated.includes(progressScript)) {
-    const bodyEnd = /<\\/body\\s*>/i;
+    const bodyEnd = new RegExp("</body\\s*>", "i");
     if (!bodyEnd.test(updated)) throw Error('No se encontró cierre </body> ni loader de progreso en layout.');
     updated = updated.replace(bodyEnd, required.join('\\n  ') + '\\n  </body>');
   } else {
