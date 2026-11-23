@@ -92,7 +92,7 @@
       const original = new URL(link.href, window.location.href);
       // En CKA-Priv Atrás de Lab 1 apunta al indice Jekyll.
       // En modo oficial ese limite regresa al portal del participante.
-      const indexPath = new URL("../../../", window.location.href).pathname;
+      const indexPath = new URL("../../", window.location.href).pathname;
       if (original.origin === window.location.origin &&
           original.pathname === indexPath) {
         if (state.returnUrl) link.href = state.returnUrl;
