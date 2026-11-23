@@ -29,19 +29,29 @@ function createBrowser(hash, overrides = {}) {
     addEventListener(type, cb) { this.listeners[type] = cb; }
   };
   const index = { href: "https://netec-mx.github.io/CKA-Priv-/", textContent: "Lista General", parentElement: {classList: {contains: () => false}} };
+  const back = {
+    href: overrides.backToIndex
+      ? "https://netec-mx.github.io/CKA-Priv-/"
+      : "https://netec-mx.github.io/CKA-Priv-/lab8/lab8/",
+    textContent: "⬅ Atrás",
+    parentElement: { classList: { contains: () => false } },
+    listeners: {},
+    addEventListener(type, cb) { this.listeners[type] = cb; }
+  };
   const root = {
     dataset: {
       trackingApi: "https://labcontrol.superwebapp.com/api",
       courseId: "ckapriv", labId: "l001"
     },
     querySelectorAll(selector) {
-      if (selector === ".lab-nav a.btn") return [index, target];
+      if (selector === ".lab-nav a.btn") return [back, index, target];
       return [];
     },
     prepend() {}
   };
   const location = {
-    hash, pathname: "/CKA-Priv-/lab1/lab1/", search: "",
+    hash, href: "https://netec-mx.github.io/CKA-Priv-/lab1/lab1/",
+    pathname: "/CKA-Priv-/lab1/lab1/", search: "",
     origin: "https://netec-mx.github.io",
     assigned: null,
     assign(url) { this.assigned = url; }
@@ -95,7 +105,7 @@ function createBrowser(hash, overrides = {}) {
   });
   vm.runInContext(policyScript, ctx);
   vm.runInContext(contextScript, ctx);
-  return { root, window, target, index, replies, context: window.LabControlContext };
+  return { root, window, back, target, index, replies, context: window.LabControlContext };
 }
 
 const publicBrowser = createBrowser("");
@@ -104,6 +114,7 @@ assert.equal(publicBrowser.context.mode, "public");
 assert.equal(publicBrowser.replies.length, 0, "Jekyll publico no consulta LabControl");
 assert.equal(publicBrowser.index.href, "https://netec-mx.github.io/CKA-Priv-/");
 assert.equal(Object.keys(publicBrowser.target.listeners).length, 0);
+assert.equal(publicBrowser.back.href, "https://netec-mx.github.io/CKA-Priv-/lab8/lab8/");
 assert.equal(publicBrowser.target.href, "https://netec-mx.github.io/CKA-Priv-/lab2/lab2/");
 
 const returnUrl = "https://labcontrol.superwebapp.com/participant";
@@ -115,6 +126,11 @@ assert.equal(auth.context.mode, "participant");
 assert.equal(auth.window.location.hash, "#lab-lc=1");
 assert.equal(auth.index.href, returnUrl);
 assert.equal(typeof auth.target.listeners.click, "function", "CKA-Priv legacy debe interceptar siguiente");
+assert.equal(auth.target.href,
+  "https://netec-mx.github.io/CKA-Priv-/lab2/lab2/#lab-lc=1",
+  "El href autentico no debe perder el marcador");
+assert.equal(auth.back.href,
+  "https://netec-mx.github.io/CKA-Priv-/lab8/lab8/#lab-lc=1");
 assert.equal(auth.context.progressKey("ckapriv", "l001"),
   "netec:labcontrol:stepProgress:v1:session-a:enroll-a:ckapriv:l001");
 assert.equal(auth.context.queueKey("ckapriv", "l001"),
@@ -122,6 +138,19 @@ assert.equal(auth.context.queueKey("ckapriv", "l001"),
 await auth.target.listeners.click({ preventDefault() {} });
 assert.equal(auth.window.location.assigned,
   "https://netec-mx.github.io/CKA-Priv-/lab2/lab2/#lab-lc=1");
+
+const first = createBrowser("#lab-access=token-seguro&lab-return=" + encodeURIComponent(returnUrl), {backToIndex: true});
+await first.context.ready;
+assert.equal(first.back.href, returnUrl,
+  "Atrás de Lab 1 regresa a LabControl, no al indice publico");
+
+const pending = createBrowser("#lab-access=token-seguro");
+let prevented = false;
+pending.target.listeners.click?.({
+  preventDefault() { prevented = true; },
+  stopImmediatePropagation() {}
+});
+assert.ok(prevented, "Durante handoff no escapar a URL publica");
 
 const resumed = createBrowser("#lab-lc=1", {
   token: "token-seguro", returnUrl
