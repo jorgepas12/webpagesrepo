@@ -69,7 +69,7 @@
           const url = new URL(link.href);
           if (url.origin !== window.location.origin || url.search) return;
           // Consultar en cada salto: el instructor pudo bloquear un Lab.
-          const response = await fetch(apiUrl.replace(/\\/$/, "") + "/tracking/progress", {
+          const response = await fetch(apiUrl.replace(/\/$/, "") + "/tracking/progress", {
             headers: { Authorization: "Bearer " + state.token }
           });
           if (!response.ok) {
@@ -86,7 +86,7 @@
                 lab.individuallyBlocked) return false;
             const allowed = new URL(lab.launchUrl);
             return allowed.origin === url.origin &&
-              allowed.pathname.replace(/\\/+$/, "") === url.pathname.replace(/\\/+$/, "");
+              allowed.pathname.replace(/\/+$/, "") === url.pathname.replace(/\/+$/, "");
           });
           if (!found) { showDenied(); return; }
           url.hash = "lab-lc=1";
