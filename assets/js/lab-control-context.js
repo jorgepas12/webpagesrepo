@@ -29,6 +29,11 @@
     if (state.mode === "public" || state.mode === "demo") return;
     const fragment = new URLSearchParams(window.location.hash.slice(1));
     const token = fragment.get("lab-access") || (mode.resume ? sessionStorage.getItem(accessKey) : null);
+    // Quitar las credenciales del fragmento antes de cualquier solicitud,
+    // aun si la verificacion acaba en 401, 403 o error de red.
+    if (fragment.has("lab-access")) {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search + "#lab-lc=1");
+    }
     // Nunca confiar en tokens de una pagina publica anterior.
     if (mode.mode !== "pending-participant" || !token) {
       state.mode = "denied";
@@ -106,7 +111,7 @@
       ? policy.officialQueueKey(state.identity, course, lab) : null;
   }
   function showDenied() {
-    if (document.getElementById("labcontrol-official-denied")) return;
+    if (!root || document.getElementById("labcontrol-official-denied")) return;
     const message = document.createElement("div");
     message.id = "labcontrol-official-denied";
     message.setAttribute("role", "alert");
