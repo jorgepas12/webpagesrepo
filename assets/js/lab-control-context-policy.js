@@ -17,6 +17,9 @@
     if (access && demo) return { mode: "invalid", reason: "conflicting-context" };
     if (demo) return { mode: "demo", sessionId: demo };
     if (access) return { mode: "pending-participant" };
+    // Marcador sin credenciales para navegación oficial y recarga. El servidor
+    // vuelve a validar token de sessionStorage y disponibilidad del Lab.
+    if (params.get("lab-lc") === "1") return { mode: "pending-participant", resume: true };
     // Ni lab-return ni un token residual de sessionStorage habilitan el modo oficial.
     return { mode: "public" };
   }
