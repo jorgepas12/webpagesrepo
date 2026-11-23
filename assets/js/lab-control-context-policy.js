@@ -21,6 +21,36 @@
     return { mode: "public" };
   }
 
+  async function validateParticipantContext(fetchImpl, apiBaseUrl, token, expectedTrackingId) {
+    if (typeof fetchImpl !== "function" ||
+        typeof apiBaseUrl !== "string" ||
+        !/^https:\/\/[^?#]+$/i.test(apiBaseUrl) ||
+        typeof token !== "string" || !token ||
+        typeof expectedTrackingId !== "string" || !expectedTrackingId) {
+      return null;
+    }
+    try {
+      const response = await fetchImpl(
+        apiBaseUrl.replace(/\/$/, "") + "/participant-access/me",
+        { method: "GET", headers: { Authorization: "Bearer " + token } }
+      );
+      if (!response || !response.ok) return null;
+      const payload = await response.json();
+      const identity = payload?.participantAccess;
+      if (!identity ||
+          identity.courseTrackingId !== expectedTrackingId ||
+          typeof identity.courseSessionId !== "string" ||
+          typeof identity.enrollmentId !== "string") return null;
+      // Do not return, log or persist the bearer token.
+      return {
+        courseSessionId: identity.courseSessionId,
+        enrollmentId: identity.enrollmentId
+      };
+    } catch {
+      return null;
+    }
+  }
+
   function officialProgressKey(identity, courseId, labId) {
     const { courseSessionId, enrollmentId } = identity || {};
     if (![courseSessionId, enrollmentId, courseId, labId].every(
@@ -45,6 +75,7 @@
 
   const api = Object.freeze({
     classifyContext,
+    validateParticipantContext,
     officialProgressKey,
     officialQueueKey
   });
