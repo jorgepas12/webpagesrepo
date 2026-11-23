@@ -9,14 +9,20 @@ const defaultLayout = read('_layouts/default.html');
 const labLayout = read('_layouts/lab.html');
 const config = read('_config.yml');
 const errors = [];
-const scripts = ['lab-demo-context.js','lab-progress.js','lab-tracker.js'];
+const scripts = [
+  'lab-demo-context.js',
+  'lab-control-context-policy.js',
+  'lab-control-context.js',
+  'lab-progress.js',
+  'lab-tracker.js'
+];
 let previous = -1;
 for (const file of scripts) {
   const script = 'assets/js/' + file;
   const idx = defaultLayout.indexOf(script);
   if (idx < 0) errors.push('Missing script loader in default layout: ' + script);
   if (idx >= 0 && idx < previous) errors.push('Incorrect runtime load order: ' + file);
-  previous = idx;
+  if (idx >= 0) previous = idx;
 }
 for (const field of ['data-course-id','data-lab-id','data-tracking-api','data-tracking']) {
   if (!labLayout.includes(field)) errors.push('Missing ' + field + ' in lab layout');
