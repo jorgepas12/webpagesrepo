@@ -86,6 +86,8 @@ async function installFiles() {
   const shared = [
     '_includes/step_label.html',
     'assets/js/lab-demo-context.js',
+    'assets/js/lab-control-context-policy.js',
+    'assets/js/lab-control-context.js',
     'assets/js/lab-progress.js',
     'assets/js/lab-tracker.js',
   ];

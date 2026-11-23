@@ -296,6 +296,7 @@ function createBrowser({
   labId = 'l001',
   localStorage,
   demoSessionId = null,
+  officialIdentity = null,
 } = {}) {
   const document =
     new FakeEventTarget();
@@ -382,6 +383,17 @@ function createBrowser({
           courseId || 'legacy',
           labId,
         ].join(':'),
+    };
+  }
+
+  if (officialIdentity) {
+    window.LabControlContext = {
+      mode: 'participant',
+      ready: Promise.resolve(),
+      progressKey: (courseId, labId) => [
+        'netec:labcontrol:stepProgress:v1',
+        officialIdentity.sessionId, officialIdentity.enrollmentId, courseId, labId
+      ].join(':')
     };
   }
 
@@ -728,6 +740,41 @@ await test(
       storage.getItem(participantKey) === originalParticipantState,
       'La demostración alteró el progreso del participante.',
     );
+  },
+);
+
+await test(
+  'participante oficial no lee ni altera marcas de Jekyll publico',
+  async () => {
+    const courseId = 'ckapriv', labId = 'l001';
+    const publicKey = 'netec:stepProgress:ckapriv:l001';
+    const officialKey = 'netec:labcontrol:stepProgress:v1:session-a:enrollment-a:ckapriv:l001';
+    const originalPublic = JSON.stringify({
+      version: 1, completed: ['s002'], updatedAt: 123
+    });
+    const store = new MemoryStorage({ [publicKey]: originalPublic });
+    const browser = createBrowser({
+      courseId, labId, localStorage: store,
+      officialIdentity: { sessionId: 'session-a', enrollmentId: 'enrollment-a' }
+    });
+    await new Promise(resolve => setImmediate(resolve));
+    assert(browser.steps[0].attributes.get('aria-pressed') === 'false',
+      'La matricula oficial no debe restaurar marcas publicas');
+    assert(store.getItem(officialKey) === null,
+      'No debe importar automaticamente las marcas publicas');
+    const click = browser.steps[0].listeners.get('click');
+    click({ preventDefault() {}, stopPropagation() {} });
+    assert(store.getItem(officialKey) !== null,
+      'Debe escribir solamente en la clave oficial');
+    assert(store.getItem(publicKey) === originalPublic,
+      'El progreso publico debe permanecer intacto');
+    const other = createBrowser({
+      courseId, labId, localStorage: store,
+      officialIdentity: { sessionId: 'session-a', enrollmentId: 'enrollment-b' }
+    });
+    await new Promise(resolve => setImmediate(resolve));
+    assert(other.steps[0].attributes.get('aria-pressed') === 'false',
+      'Otra matricula no debe heredar los Steps');
   },
 );
 

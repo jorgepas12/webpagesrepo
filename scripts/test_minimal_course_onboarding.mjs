@@ -41,9 +41,16 @@ test('nuevo curso Jekyll independiente: incorpora runtime local, tracking establ
     assert.equal(files.includes('.labcontrol'),false,'Los manifests se generan únicamente en CI');
     assert.equal(files.includes('scripts'),false,'No se deben copiar scripts locales');
     assert.deepEqual((await readdir(join(root,'assets/js'))).sort(),[
+      'lab-control-context-policy.js','lab-control-context.js',
       'lab-demo-context.js','lab-progress.js','lab-tracker.js',
     ]);
-    assert.ok((await readFile(join(root,'_layouts/default.html'),'utf8')).includes('lab-tracker.js'));
+    const layout = await readFile(join(root,'_layouts/default.html'),'utf8');
+    let previous = -1;
+    for (const name of ['lab-demo-context.js','lab-control-context-policy.js','lab-control-context.js','lab-progress.js','lab-tracker.js']) {
+      const position = layout.indexOf('/assets/js/' + name);
+      assert.ok(position > previous, 'Orden de loader incompatible: ' + name);
+      previous = position;
+    }
     assert.ok((await readFile(join(root,'.github/workflows/pages.yml'),'utf8')).includes('prepare_course_build.mjs'));
     const markdown=await readFile(join(root,'labs/lab1/lab1.md'),'utf8');
     assert.match(markdown,/course_id: democurso/);

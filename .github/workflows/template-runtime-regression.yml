@@ -28,6 +28,8 @@ jobs:
       - name: Validate syntax
         run: |
           node --check assets/js/lab-demo-context.js
+          node --check assets/js/lab-control-context-policy.js
+          node --check assets/js/lab-control-context.js
           node --check assets/js/lab-progress.js
           node --check assets/js/lab-tracker.js
           node --check scripts/update_existing_course_runtime.mjs
@@ -43,6 +45,8 @@ jobs:
           node scripts/test_instructor_demo_return.mjs
           node scripts/test_instructor_demo_tracker.mjs
           node scripts/test_instructor_demo_ui.mjs
+          node scripts/test_labcontrol_context_policy.mjs
+          node scripts/test_labcontrol_runtime_navigation.mjs
           node scripts/test_lab_progress_storage.mjs
           node scripts/test_lab_tracker.mjs
       - name: New and existing course regressions

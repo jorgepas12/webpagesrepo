@@ -21,21 +21,32 @@ async function fixture() {
   return dir;
 }
 
-test('check does not touch any files; apply updates only shared JS; repeated apply is idempotent', async () => {
+test('check is read-only; apply installs complete context and shared JS; repeated apply is idempotent', async () => {
   const dir = await fixture();
   try {
     const lab = await readFile(join(dir,'labs/lab1/lab1.md'));
     const original = await readFile(join(dir,'assets/js/lab-progress.js'));
     const check = await prepare(['--target',dir,'--check']);
     assert.equal(check.applied,false);
-    assert.equal(check.changed.length,3);
+    assert.equal(check.changed.length,6);
     assert.deepEqual(await readFile(join(dir,'assets/js/lab-progress.js')),original);
+    assert.equal(await readFile(join(dir,'_layouts/default.html'),'utf8'),layout);
     const applied = await prepare(['--target',dir,'--apply']);
     assert.equal(applied.applied,true);
-    assert.equal(applied.changed.length,3);
+    assert.equal(applied.changed.length,6);
     assert.deepEqual((await prepare(['--target',dir,'--apply'])).changed,[]);
     assert.deepEqual(await readFile(join(dir,'labs/lab1/lab1.md')),lab);
-    assert.equal(await readFile(join(dir,'_layouts/default.html'),'utf8'),layout);
+    const updatedLayout = await readFile(join(dir,'_layouts/default.html'),'utf8');
+    const loaders = ['lab-demo-context.js','lab-control-context-policy.js','lab-control-context.js','lab-progress.js','lab-tracker.js'];
+    let last = -1;
+    for (const loader of loaders) {
+      const position = updatedLayout.indexOf('/assets/js/' + loader);
+      assert.ok(position > last, 'Loader ausente o desordenado: ' + loader);
+      last = position;
+    }
+    assert.equal((updatedLayout.match(/lab-control-context\.js/g) || []).length,1);
+    assert.match(await readFile(join(dir,'assets/js/lab-control-context.js'),'utf8'),/LabControlContext/);
+    assert.match(await readFile(join(dir,'assets/js/lab-control-context-policy.js'),'utf8'),/classifyContext/);
     assert.equal((await lstat(join(dir,'assets/js/lab-demo-context.js'))).isFile(),true);
   } finally { await rm(dir,{recursive:true,force:true}); }
 });
