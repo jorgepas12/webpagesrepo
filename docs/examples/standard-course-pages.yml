@@ -76,7 +76,7 @@ jobs:
         run: |
           set -euo pipefail
           # Do not publish a course page that references missing shared JavaScript.
-          for file in lab-demo-context.js lab-progress.js lab-tracker.js; do
+          for file in lab-demo-context.js lab-control-context-policy.js lab-control-context.js lab-progress.js lab-tracker.js; do
             test -s "_site/assets/js/$file" || { echo "::error::Missing published runtime: $file"; exit 1; }
           done
           test -s _site/course.identity.json
