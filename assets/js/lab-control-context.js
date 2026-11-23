@@ -13,6 +13,19 @@
   const accessKey = "netec:participantAccessToken";
   const returnKey = "netec:labControlReturnUrl";
 
+  // Mientras se comprueban matricula y permisos, los enlaces del HTML
+  // original no deben escapar silenciosamente al modo publico.
+  if (root && state.mode === "pending") {
+    root.querySelectorAll(".lab-nav a.btn").forEach(link => {
+      link.addEventListener("click", event => {
+        if (state.mode === "participant") return;
+        event.preventDefault();
+        event.stopImmediatePropagation?.();
+        if (state.mode === "denied") showDenied();
+      }, true);
+    });
+  }
+
   function validReturn(value, apiUrl) {
     if (!value || !apiUrl) return null;
     try {
@@ -69,14 +82,41 @@
         link.parentElement?.classList?.contains("lab-nav-index");
       if (isIndex) {
         if (state.returnUrl) link.href = state.returnUrl;
+        // Nunca permitir que Lista General oficial termine en el indice publico.
+        else link.addEventListener("click", event => {
+          event.preventDefault();
+          showDenied();
+        });
         return;
+      }
+      const original = new URL(link.href, window.location.href);
+      // En CKA-Priv Atrás de Lab 1 apunta al indice Jekyll.
+      // En modo oficial ese limite regresa al portal del participante.
+      const indexPath = new URL("../../../", window.location.href).pathname;
+      if (original.origin === window.location.origin &&
+          original.pathname === indexPath) {
+        if (state.returnUrl) link.href = state.returnUrl;
+        else link.addEventListener("click", event => {
+          event.preventDefault();
+          showDenied();
+        });
+        return;
+      }
+      // Defender tambien los enlaces reales frente a apertura en otra pestaña
+      // o a un click mientras otra llamada de tracking esta en curso.
+      if (original.origin === window.location.origin && !original.search) {
+        original.hash = "lab-lc=1";
+        link.href = original.toString();
       }
       link.addEventListener("click", async event => {
         event.preventDefault();
         if (state.mode !== "participant" || !state.token) return;
         try {
           const url = new URL(link.href);
-          if (url.origin !== window.location.origin || url.search) return;
+          if (url.origin !== window.location.origin || url.search) {
+            showDenied();
+            return;
+          }
           // Consultar en cada salto: el instructor pudo bloquear un Lab.
           const response = await fetch(apiUrl.replace(/\/$/, "") + "/tracking/progress", {
             headers: { Authorization: "Bearer " + state.token }
