@@ -28,7 +28,7 @@ function createBrowser(hash, overrides = {}) {
     listeners: {},
     addEventListener(type, cb) { this.listeners[type] = cb; }
   };
-  const index = { href: "https://netec-mx.github.io/CKA-Priv-/", textContent: "Lista General", parentElement: {classList: {contains: () => false}} };
+  const index = { href: "https://netec-mx.github.io/CKA-Priv-/", textContent: "Lista General", parentElement: {classList: {contains: () => false}}, listeners: {}, addEventListener(type, cb) { this.listeners[type] = cb; } };
   const back = {
     href: overrides.backToIndex
       ? "https://netec-mx.github.io/CKA-Priv-/"
