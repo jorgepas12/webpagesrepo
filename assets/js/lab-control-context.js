@@ -7,7 +7,6 @@
   "use strict";
   const policy = window.LabControlContextPolicy;
   const root = document.querySelector("article.lab");
-  const nav = window.LabControlDemo;
   const mode = policy?.classifyContext(window.location.hash) ?? { mode: "public" };
   const state = { mode: mode.mode === "demo" ? "demo" : mode.mode === "public" ? "public" : "pending",
     identity: null, token: null, returnUrl: null, labs: [] };
@@ -29,7 +28,7 @@
     if (!root || !policy) return;
     if (state.mode === "public" || state.mode === "demo") return;
     const fragment = new URLSearchParams(window.location.hash.slice(1));
-    const token = fragment.get("lab-access");
+    const token = fragment.get("lab-access") || (mode.resume ? sessionStorage.getItem(accessKey) : null);
     // Nunca confiar en tokens de una pagina publica anterior.
     if (mode.mode !== "pending-participant" || !token) {
       state.mode = "denied";
@@ -46,12 +45,55 @@
     state.mode = "participant";
     state.identity = identity;
     state.token = token;
-    state.returnUrl = validReturn(fragment.get("lab-return"), apiUrl);
+    state.returnUrl = validReturn(fragment.get("lab-return") || (mode.resume ? sessionStorage.getItem(returnKey) : null), apiUrl);
     sessionStorage.setItem(accessKey, token);
     if (state.returnUrl) sessionStorage.setItem(returnKey, state.returnUrl);
     // Se elimina el token de la barra, permaneciendo solamente en memoria y
     // sessionStorage hasta la salida. El modo publico ignora ambos.
-    window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    window.history.replaceState(null, "", window.location.pathname + window.location.search + "#lab-lc=1");
+    bindOfficialNavigation(root, apiUrl);
+  }
+
+  function bindOfficialNavigation(root, apiUrl) {
+    const targetUrl = state.returnUrl;
+    if (targetUrl) {
+      root.querySelectorAll(".lab-nav-index a.btn").forEach(link => {
+        link.href = targetUrl;
+      });
+    }
+    root.querySelectorAll(".lab-nav-prev a.btn, .lab-nav-next a.btn").forEach(link => {
+      link.addEventListener("click", async event => {
+        event.preventDefault();
+        if (state.mode !== "participant" || !state.token) return;
+        try {
+          const url = new URL(link.href);
+          if (url.origin !== window.location.origin || url.search) return;
+          // Consultar en cada salto: el instructor pudo bloquear un Lab.
+          const response = await fetch(apiUrl.replace(/\\/$/, "") + "/tracking/progress", {
+            headers: { Authorization: "Bearer " + state.token }
+          });
+          if (!response.ok) {
+            state.mode = "denied";
+            showDenied();
+            return;
+          }
+          const data = await response.json();
+          if (data?.enrollment?.id !== state.identity.enrollmentId ||
+              data?.courseSession?.id !== state.identity.courseSessionId ||
+              !Array.isArray(data.labs)) return;
+          const found = data.labs.some(lab => {
+            if (!lab.launchUrl || lab.availabilityStatus !== "AVAILABLE" ||
+                lab.individuallyBlocked) return false;
+            const allowed = new URL(lab.launchUrl);
+            return allowed.origin === url.origin &&
+              allowed.pathname.replace(/\\/+$/, "") === url.pathname.replace(/\\/+$/, "");
+          });
+          if (!found) { showDenied(); return; }
+          url.hash = "lab-lc=1";
+          window.location.assign(url.toString());
+        } catch { showDenied(); }
+      });
+    });
   }
 
   const ready = activate().catch(() => { state.mode = "denied"; });
