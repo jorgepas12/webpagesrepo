@@ -31,4 +31,57 @@ assert.equal(
   "netec:labcontrol:trackingQueue:v1:session-1:enrollment-a:course:l001"
 );
 assert.ok(!keyA.includes("secret"));
+
+const validResponse = {
+  ok: true,
+  async json() {
+    return { participantAccess: {
+      courseTrackingId: "ckapriv",
+      courseSessionId: "session-cka",
+      enrollmentId: "enrollment-test"
+    } };
+  }
+};
+const requests = [];
+const accepted = await p.validateParticipantContext(
+  async (url, options) => {
+    requests.push({ url, options });
+    return validResponse;
+  },
+  "https://labcontrol.example/api",
+  "token-privado",
+  "ckapriv"
+);
+assert.equal(accepted.courseSessionId, "session-cka");
+assert.equal(accepted.enrollmentId, "enrollment-test");
+assert.equal(requests[0].url, "https://labcontrol.example/api/participant-access/me");
+assert.equal(requests[0].options.headers.Authorization, "Bearer token-privado");
+assert.ok(!JSON.stringify(accepted).includes("token-privado"));
+
+assert.equal(
+  await p.validateParticipantContext(async () => validResponse,
+    "https://labcontrol.example/api", "token-privado", "otrocurso"),
+  null, "La identidad debe corresponder al curso abierto"
+);
+assert.equal(
+  await p.validateParticipantContext(async () => ({ ok: false, status: 401 }),
+    "https://labcontrol.example/api", "token-expirado", "ckapriv"),
+  null, "Una sesión expirada no activa progreso oficial"
+);
+assert.equal(
+  await p.validateParticipantContext(async () => { throw new Error("offline"); },
+    "https://labcontrol.example/api", "token-privado", "ckapriv"),
+  null, "Sin confirmación de API no se habilita un contexto oficial"
+);
+assert.equal(
+  await p.validateParticipantContext(async () => validResponse,
+    "http://labcontrol.example/api", "token-privado", "ckapriv"),
+  null, "No enviar tokens por HTTP"
+);
+assert.equal(
+  await p.validateParticipantContext(async () => validResponse,
+    "https://labcontrol.example/api", "", "ckapriv"),
+  null, "No autenticar sin token"
+);
+
 console.log("Contexto #130: aserciones PASS (modo público, demo, oficial pendiente, claves aisladas).");
