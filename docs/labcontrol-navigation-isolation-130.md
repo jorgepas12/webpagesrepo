@@ -1,6 +1,6 @@
 # #130 — Navegación y progreso independientes: Jekyll público / LabControl / instructor demo
 
-Estado: **fase 0, contrato y plan de migración segura**. Este documento NO activa ninguna modificación en las páginas Jekyll, y no reemplaza la lógica actual hasta que las regresiones pasen.
+Estado: **implementación experimental en PR Draft #59**. La rama incluye el runtime de separación, pero **ningún curso existente ni producción se ha modificado o desplegado**. No fusionar hasta resolver la adopción automática y QA en un curso aislado.
 
 ## Invariantes
 
@@ -20,9 +20,9 @@ Estado: **fase 0, contrato y plan de migración segura**. Este documento NO acti
 - `lab-tracker.js` muestra aviso `Sesión sin acceso` al marcar Steps desde un acceso público con tracking configurado. El uso público no debe mostrarlo.
 - `lab-demo-context.js` ya aísla marcas demo y propaga `lab-demo` solamente sobre enlaces propios; sus pruebas actuales deben conservarse.
 
-## Arquitectura por fases
+## Arquitectura por fases y avances en PR #59
 
-### Fase 1 — Contexto explícito y estado oficial separado
+### Fase 1 — Contexto explícito y estado oficial separado (implementada en rama)
 - Nuevo módulo precargado antes de `lab-progress.js` que clasifique `public | pending-participant | participant | demo` y lea `lab-access` / `lab-demo` de los fragmentos de inicio. **Un token en storage o solo `lab-return` no constituye prueba de sesión válida.**
 - Validar el token mediante API de participante y obtener identificadores confiables `courseSessionId` y `enrollmentId` **antes** de inicializar `lab-progress.js` en modo oficial, evitando parpadeos y contaminación de marcas públicas.
 - Mantener el token solo en `sessionStorage` y jamás registrarlo, copiarlo a localStorage ni introducirlo como parte de un nombre de clave; un token rotado no debe causar recuperación cruzada.
@@ -30,13 +30,13 @@ Estado: **fase 0, contrato y plan de migración segura**. Este documento NO acti
 - En una visita pública **no migrar ni borrar** claves públicas existentes; mantener compatibilidad con el fallback legacy solo para modo público.
 - Si no se consigue validar sesión, **no inicializar espacio oficial con identidad incierta**. Mostrar aviso/fallback seguro, sin pasar a modo público automáticamente.
 
-### Fase 2 — Navegación restringida por sesión
+### Fase 2 — Navegación restringida por sesión (implementada en rama, requiere QA E2E)
 - Jekyll público: los `href` estáticos de Atrás/Siguiente/Lista General quedan sin intervención.
 - LabControl oficial: Lista General dirige a `/participant` *únicamente* con contexto oficial confirmado; Atrás/Siguiente conservan la ruta original únicamente después de consultar disponibilidad del destino en la revisión congelada y **validar en API al abrir el Lab**. No propagar token a enlaces sin revisar exposición en historial y `Referer`; preferir handoff de acceso validado que no permita saltar permisos.
 - Los Labs bloqueados global o individualmente no reciben escritura oficial; un acceso directo público no se confunde con un acceso oficial. Evitar enlaces rotos en los extremos de secuencia.
 - Demo instructor: preservar `lab-demo` y enlace explícito de regreso sin añadir acceso participante.
 
-### Fase 3 — QA y adopción
+### Fase 3 — QA y adopción (parcial: CI + automatizador legacy; pendiente cursos publicados)
 - Tests de matrices: acceso directo (incluyendo luego de sesión oficial en la misma pestaña), nuevo participante, otro usuario en mismo navegador, expiración/401, bloqueo/403, retiro de matrícula, reconexión offline, vuelta a la sesión, demo instructor, recarga y botones en ambos extremos.
 - Verificar 0 escrituras oficiales en modo público y demo; ninguna transferencia entre claves públicas y oficiales. Progreso original permaneció byte a byte.
 - Preparar cursos existentes mediante scripts automatizados de `webpagesrepo`, sin tocar Markdown académico, y probar primero con fixture publicado aislado. EC2: evitar despliegue de API/BD salvo cambios justificados.
@@ -44,3 +44,10 @@ Estado: **fase 0, contrato y plan de migración segura**. Este documento NO acti
 ## Alcance de Issue
 
 La Issue #130 también menciona navegación contextual **interna de Next.js** (Cursos/Sesiones/Participantes). No darla por cerrada únicamente con el arreglo de navegación Jekyll; evaluar la parte interna por separado, conservando el estado de filtros, Lab abierto y retorno.
+
+## Estado de integración y condición de despliegue
+
+- En la rama, `_layouts/default.html` carga `lab-control-context-policy.js` y `lab-control-context.js` antes de progreso/tracker. El modo público conserva el almacenamiento de Jekyll; la entrada autorizada espera validación del backend. El marcador `#lab-lc=1` permite recarga/navegación explícita sin colocar el token en enlaces Atrás/Siguiente.
+- `scripts/update_existing_course_runtime.mjs` actualiza los loaders y scripts técnicos y crea respaldo de archivos reemplazados; no toca `labs/`. Sus pruebas deben aprobar en GitHub Actions y se debe validar el resultado con Jekyll antes de publicar.
+- **Limitación de adopción:** `scripts/prepare_course_build.mjs` continúa con compatibilidad para checkouts de cursos existentes que todavía cargan únicamente demo/progress/tracker. No se debe sincronizar un `lab-tracker.js` nuevo sin instalar a la vez `lab-control-context-policy.js`, `lab-control-context.js` y sus loaders. Coordinar migración de cursos y automatización central antes de fusionar el PR.
+- `#130` seguirá abierto para completar QA en curso controlado y navegación contextual dentro de Next.js.
