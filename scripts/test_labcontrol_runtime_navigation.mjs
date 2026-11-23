@@ -134,6 +134,8 @@ assert.equal(blocked.window.location.assigned, null);
 const expired = createBrowser("#lab-access=expired", { expired: true });
 await expired.context.ready;
 assert.equal(expired.context.mode, "denied");
+assert.ok(!expired.window.location.hash.includes("expired"),
+  "Un token expirado tampoco debe quedar en la URL");
 
 const demo = createBrowser("#lab-demo=session-instructor");
 await demo.context.ready;
