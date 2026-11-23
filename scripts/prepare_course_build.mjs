@@ -84,7 +84,9 @@ export async function prepare(args = process.argv.slice(2)) {
     throw Error('Identidad de curso inválida');
   }
   const defaultLayout = await readFile(join(target, '_layouts/default.html'), 'utf8');
-  const expected = RUNTIME_FILES.map(path => path.split('/').at(-1));
+  // Legacy layouts must already load the three original scripts; the two
+  // context loaders are installed by prepareLayout below.
+  const expected = ['lab-demo-context.js', 'lab-progress.js', 'lab-tracker.js'];
   let previous = -1;
   for (const basename of expected) {
     const position = defaultLayout.indexOf('/assets/js/' + basename);
