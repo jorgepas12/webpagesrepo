@@ -95,6 +95,10 @@
     if (demoKey) {
       return demoKey;
     }
+    const official = window.LabControlContext;
+    if (official?.mode === "participant") {
+      return official.progressKey(courseId, labId);
+    }
     /*
      * En Labs con tracking, courseId + labId forman
      * la identidad local estable.
@@ -149,7 +153,8 @@
     if (
       !stored &&
       courseId &&
-      !window.LabControlDemo?.isActive()
+      !window.LabControlDemo?.isActive() &&
+      !window.LabControlContext?.mode?.includes("participant")
     ) {
       const legacyKey =
         getLegacyStorageKey(
@@ -1253,14 +1258,19 @@
      Inicio
      --------------------------------------------------------- */
 
-  if (
-    document.readyState === "loading"
-  ) {
-    document.addEventListener(
-      "DOMContentLoaded",
-      initLabProgress
-    );
-  } else {
+  async function startProgress() {
+    const context = window.LabControlContext;
+    if (context) await context.ready;
+    if (context?.mode === "denied" || context?.mode === "pending") {
+      context.showDenied();
+      return;
+    }
     initLabProgress();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => { void startProgress(); });
+  } else {
+    void startProgress();
   }
 })();
