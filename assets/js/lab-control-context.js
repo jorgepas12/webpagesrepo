@@ -60,13 +60,17 @@
   }
 
   function bindOfficialNavigation(root, apiUrl) {
-    const targetUrl = state.returnUrl;
-    if (targetUrl) {
-      root.querySelectorAll(".lab-nav-index a.btn").forEach(link => {
-        link.href = targetUrl;
-      });
-    }
-    root.querySelectorAll(".lab-nav-prev a.btn, .lab-nav-next a.btn").forEach(link => {
+    // Cursos anteriores (CKA-Priv) ponen los <a> directamente en .lab-nav;
+    // la plantilla nueva los envuelve en .lab-nav-{prev,index,next}.
+    // No depender de wrappers que no existen en sitios ya publicados.
+    const links = root.querySelectorAll(".lab-nav a.btn");
+    links.forEach(link => {
+      const isIndex = link.textContent?.trim() === "Lista General" ||
+        link.parentElement?.classList?.contains("lab-nav-index");
+      if (isIndex) {
+        if (state.returnUrl) link.href = state.returnUrl;
+        return;
+      }
       link.addEventListener("click", async event => {
         event.preventDefault();
         if (state.mode !== "participant" || !state.token) return;
