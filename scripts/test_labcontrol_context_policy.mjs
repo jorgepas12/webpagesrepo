@@ -84,4 +84,53 @@ assert.equal(
   null, "No autenticar sin token"
 );
 
+
+const progressPayload = {
+  enrollment: { id: "enrollment-test" },
+  courseSession: { id: "session-cka" },
+  course: { trackingId: "ckapriv" },
+  labs: [
+    { labTrackingId: "l001", availabilityStatus: "AVAILABLE",
+      individuallyBlocked: false, launchUrl: "https://labs.example/cka/lab1" },
+    { labTrackingId: "l002", availabilityStatus: "AVAILABLE",
+      individuallyBlocked: true, launchUrl: null },
+    { labTrackingId: "l003", availabilityStatus: "LOCKED",
+      individuallyBlocked: false, launchUrl: null }
+  ]
+};
+const accessFetch = async url => {
+  if (url.endsWith("/participant-access/me")) return validResponse;
+  if (url.endsWith("/tracking/progress")) return {
+    ok: true, json: async () => progressPayload
+  };
+  throw new Error("Ruta no permitida");
+};
+assert.equal(
+  (await p.validateLabAccess(accessFetch, "https://labcontrol.example/api",
+    "token-privado", "ckapriv", "l001")).enrollmentId,
+  "enrollment-test"
+);
+assert.equal(
+  await p.validateLabAccess(accessFetch, "https://labcontrol.example/api",
+    "token-privado", "ckapriv", "l002"),
+  null, "Un Lab individualmente bloqueado no habilita el modo oficial"
+);
+assert.equal(
+  await p.validateLabAccess(accessFetch, "https://labcontrol.example/api",
+    "token-privado", "ckapriv", "l003"),
+  null, "Un Lab globalmente bloqueado no habilita el modo oficial"
+);
+assert.equal(
+  await p.validateLabAccess(accessFetch, "https://labcontrol.example/api",
+    "token-privado", "ckapriv", "l404"),
+  null, "Un Lab no presente en la sesión no habilita el modo oficial"
+);
+assert.equal(
+  await p.validateLabAccess(async url => {
+    if (url.endsWith("/participant-access/me")) return validResponse;
+    return {ok: false, status: 403};
+  }, "https://labcontrol.example/api", "token-privado", "ckapriv", "l001"),
+  null, "El rechazo 403 de tracking mantiene denegado el acceso"
+);
+
 console.log("Contexto #130: aserciones PASS (modo público, demo, oficial pendiente, claves aisladas).");
