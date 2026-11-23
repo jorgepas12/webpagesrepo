@@ -24,15 +24,16 @@ const progressScript = '<script src="{{ site.baseurl }}/assets/js/lab-progress.j
 
 export function prepareLayout(html) {
   const required = [demoScript, policyScript, contextScript, progressScript];
+  const separator = String.fromCharCode(10) + "  ";
   let updated = html;
   if (!updated.includes(progressScript)) {
-    const bodyEnd = new RegExp("</body\\s*>", "i");
+    const bodyEnd = new RegExp("</body" + String.fromCharCode(92) + "s*>", "i");
     if (!bodyEnd.test(updated)) throw Error('No se encontró cierre </body> ni loader de progreso en layout.');
-    updated = updated.replace(bodyEnd, required.join('\\n  ') + '\\n  </body>');
+    updated = updated.replace(bodyEnd, required.join(separator) + separator + "</body>");
   } else {
     const missing = required.slice(0, -1).filter(script => !updated.includes(script));
     if (missing.length) updated = updated.replace(progressScript,
-      missing.join('\\n  ') + '\\n  ' + progressScript);
+      missing.join(separator) + separator + progressScript);
   }
   let previous = -1;
   for (const script of required) {
