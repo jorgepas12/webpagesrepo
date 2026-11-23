@@ -9,9 +9,21 @@ const baseLayout = `<!doctype html>
 <script src="{{ site.baseurl }}/assets/js/lab-progress.js"></script>
 <script src="{{ site.baseurl }}/assets/js/lab-tracker.js"></script>`;
 
+function assertRuntimeOrder(html) {
+  let previous = -1;
+  for (const name of [
+    'lab-demo-context.js', 'lab-control-context-policy.js',
+    'lab-control-context.js', 'lab-progress.js'
+  ]) {
+    const position = html.indexOf('/assets/js/' + name);
+    assert.ok(position > previous, 'Orden incorrecto: ' + name);
+    previous = position;
+  }
+}
+
 test('layout carga demo primero, es idempotente', () => {
   const updated = prepareLayout(baseLayout);
-  assert.match(updated, /lab-demo-context\\.js[\\s\\S]*lab-control-context-policy\\.js[\\s\\S]*lab-control-context\\.js[\\s\\S]*lab-progress\\.js/);
+  assertRuntimeOrder(updated);
   assert.ok(!updated.includes('\\n  <script'), 'No escribir un salto de línea literal en HTML');
   assert.ok(updated.includes('</script>\n  <script'), 'Separar scripts con salto real');
   assert.equal(prepareLayout(updated), updated);
@@ -36,7 +48,7 @@ test('curso existente: dry-run no toca labs; apply guarda respaldo; repetir es i
     assert.equal(await readFile(join(dir, 'assets/js/lab-progress.js'), 'utf8'), '/* OLD */');
     await run(['--target', dir, '--apply']);
     const html = await readFile(join(dir, '_layouts/default.html'), 'utf8');
-    assert.match(html, /lab-demo-context\\.js[\\s\\S]*lab-control-context-policy\\.js[\\s\\S]*lab-control-context\\.js[\\s\\S]*lab-progress\\.js/);
+    assertRuntimeOrder(html);
     assert.notEqual(await readFile(join(dir, 'assets/js/lab-progress.js'), 'utf8'), '/* OLD */');
     assert.match(await readFile(join(dir, 'assets/js/lab-control-context.js'), 'utf8'), /LabControlContext/);
     assert.match(await readFile(join(dir, 'assets/js/lab-control-context-policy.js'), 'utf8'), /classifyContext/);
