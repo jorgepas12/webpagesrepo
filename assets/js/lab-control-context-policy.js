@@ -1,7 +1,7 @@
 /*
- * #130 — Evaluador puro de contexto para el futuro runtime Jekyll.
- * Todavía NO se carga en _layouts/default.html: no altera la experiencia
- * pública ni la sincronización vigente hasta completar el handoff seguro.
+ * #130 — Evaluador de contexto para Jekyll público, LabControl y demo.
+ * Se carga antes de lab-progress.js: el acceso oficial requiere validación
+ * de matrícula y Lab disponible; el modo público permanece independiente.
  */
 (function (root) {
   "use strict";
