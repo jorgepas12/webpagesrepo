@@ -242,38 +242,8 @@
     }
   }
 
-  function applyLabControlNavigation() {
-    /*
-     * En modo demostración conservamos Atrás,
-     * Siguiente y Lista General.
-     *
-     * La navegación oficial del participante
-     * permanece sin modificaciones.
-     */
-    if (window.LabControlDemo?.isActive()) {
-      return;
-    }
-
-    const returnUrl =
-      sessionStorage.getItem(
-        RETURN_URL_KEY
-      );
-
-    if (!returnUrl) {
-      return;
-    }
-
-    document
-      .querySelectorAll(
-        ".lab-nav a.btn"
-      )
-      .forEach(
-        link => {
-          link.href =
-            returnUrl;
-        }
-      );
-  }
+  /* #130: Navegacion gestionada por lab-control-context.js solo en modo oficial.
+     Los enlaces HTML de Jekyll publico y demo quedan intactos. */
 
   /* ---------------------------------------------------------
      Cola offline
@@ -283,6 +253,10 @@
     courseId,
     labId
   ) {
+    const context = window.LabControlContext;
+    if (context?.mode === "participant") {
+      return context.queueKey(courseId, labId);
+    }
     return (
       `${QUEUE_PREFIX}` +
       `${courseId}:${labId}`
@@ -940,6 +914,13 @@
      --------------------------------------------------------- */
 
   async function initLabTracker() {
+    const context = window.LabControlContext;
+    if (context) {
+      await context.ready;
+      // Nunca tomar tokens residuales ni sincronizar un acceso publico.
+      // El modulo de demo maneja por separado su navegacion y progreso.
+      if (context.mode !== "participant" && context.mode !== "demo") return;
+    }
     const root =
       getLabRoot();
 
@@ -995,11 +976,10 @@
      * disponible para el almacenamiento local aislado.
      * No capturar lab-return como retorno de participante.
      */
-    if (!window.LabControlDemo?.isActive()) {
+    if (!window.LabControlContext &&
+        !window.LabControlDemo?.isActive()) {
       captureAccessContextFromHash();
     }
-
-    applyLabControlNavigation();
 
     /*
      * El instructor usa lab-progress.js con almacenamiento
