@@ -55,13 +55,15 @@ jobs:
           node ../tooling/scripts/prepare_course_build.mjs --target . --check
           node ../tooling/scripts/prepare_course_build.mjs --target . --apply
           node ../tooling/scripts/prepare_course_build.mjs --target . --apply | grep -F 'Runtime técnico sin diferencias'
-          git diff --exit-code -- labs/ course.identity.json _config.yml _layouts/ _includes/
+          git diff --exit-code -- labs/ course.identity.json _config.yml _includes/
+          node --input-type=module -e 'import {execFileSync} from "node:child_process"; import {readFileSync} from "node:fs"; import {strict as assert} from "node:assert"; import {prepareLayout} from "../tooling/scripts/update_existing_course_runtime.mjs"; const original=execFileSync("git",["show","HEAD:_layouts/default.html"],{encoding:"utf8"}); assert.equal(readFileSync("_layouts/default.html","utf8"),prepareLayout(original),"El layout solo puede recibir loaders técnicos previstos")'
           node ../tooling/scripts/verify_course_runtime.mjs .
           node ../tooling/scripts/repair_step_ids.mjs --check --root .
           node ../tooling/scripts/generate_lab_manifest.mjs --all
           node ../tooling/scripts/generate_course_catalog.mjs
           node -e 'const c=require("./labcontrol/ckapriv/course.json");if(c.labs.length!==8)process.exit(1);const tasks=c.labs.flatMap(l=>l.manifest?.tasks||[]);if(tasks.length!==55||tasks.reduce((n,t)=>n+(t.steps?.length||0),0)!==448)process.exit(1);'
-          git diff --exit-code -- labs/ course.identity.json _config.yml _layouts/ _includes/
+          git diff --exit-code -- labs/ course.identity.json _config.yml _includes/
+          node --input-type=module -e 'import {execFileSync} from "node:child_process"; import {readFileSync} from "node:fs"; import {strict as assert} from "node:assert"; import {prepareLayout} from "../tooling/scripts/update_existing_course_runtime.mjs"; const original=execFileSync("git",["show","HEAD:_layouts/default.html"],{encoding:"utf8"}); assert.equal(readFileSync("_layouts/default.html","utf8"),prepareLayout(original),"El layout solo puede recibir loaders técnicos previstos")'
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         env:
@@ -77,6 +79,8 @@ jobs:
         run: |
           bundle exec jekyll build --trace
           test -s _site/assets/js/lab-tracker.js
+          test -s _site/assets/js/lab-control-context-policy.js
+          test -s _site/assets/js/lab-control-context.js
           test -s _site/assets/js/lab-progress.js
           test -s _site/course.identity.json
           test -s _site/labcontrol/ckapriv/course.json
