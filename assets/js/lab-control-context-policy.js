@@ -51,6 +51,32 @@
     }
   }
 
+  async function validateLabAccess(fetchImpl, apiBaseUrl, token, trackingId, labTrackingId) {
+    const identity = await validateParticipantContext(
+      fetchImpl, apiBaseUrl, token, trackingId
+    );
+    if (!identity || typeof labTrackingId !== "string" || !labTrackingId) return null;
+    try {
+      const response = await fetchImpl(
+        apiBaseUrl.replace(/\/$/, "") + "/tracking/progress",
+        { method: "GET", headers: { Authorization: "Bearer " + token } }
+      );
+      if (!response?.ok) return null;
+      const payload = await response.json();
+      if (payload?.enrollment?.id !== identity.enrollmentId ||
+          payload?.courseSession?.id !== identity.courseSessionId ||
+          payload?.course?.trackingId !== trackingId ||
+          !Array.isArray(payload.labs)) return null;
+      const lab = payload.labs.find(item => item.labTrackingId === labTrackingId);
+      if (!lab || lab.availabilityStatus !== "AVAILABLE" ||
+          lab.individuallyBlocked || typeof lab.launchUrl !== "string" ||
+          !lab.launchUrl) return null;
+      return identity;
+    } catch {
+      return null;
+    }
+  }
+
   function officialProgressKey(identity, courseId, labId) {
     const { courseSessionId, enrollmentId } = identity || {};
     if (![courseSessionId, enrollmentId, courseId, labId].every(
@@ -76,6 +102,7 @@
   const api = Object.freeze({
     classifyContext,
     validateParticipantContext,
+    validateLabAccess,
     officialProgressKey,
     officialQueueKey
   });
