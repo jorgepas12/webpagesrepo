@@ -2,7 +2,8 @@
 /**
  * Prepare a tracked Jekyll course in an ephemeral CI checkout.
  * Source of shared runtime: this webpagesrepo checkout (not course scripts).
- * Does not touch lab Markdown, tracking identity, layouts or course configuration.
+ * Does not touch lab Markdown, tracking identity or course configuration.
+ * Updates only the technical JS loaders in the ephemeral checkout layout.
  *
  * Modes: --check (default, reports differences) and --apply (CI copy).
  * Instructors must never run this against their working repository.
@@ -11,10 +12,13 @@ import { createHash } from 'node:crypto';
 import { readFile, writeFile, mkdir, lstat } from 'node:fs/promises';
 import { resolve, join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { prepareLayout } from './update_existing_course_runtime.mjs';
 
 const TOOLING = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const RUNTIME_FILES = Object.freeze([
   'assets/js/lab-demo-context.js',
+  'assets/js/lab-control-context-policy.js',
+  'assets/js/lab-control-context.js',
   'assets/js/lab-progress.js',
   'assets/js/lab-tracker.js',
 ]);
@@ -90,7 +94,14 @@ export async function prepare(args = process.argv.slice(2)) {
     previous = position;
   }
 
+  // Stage layout and all scripts together: never copy tracking JS with absent context loaders.
+  const desiredLayout = prepareLayout(defaultLayout);
   const changes = [];
+  if (desiredLayout !== defaultLayout) {
+    changes.push({ rel: '_layouts/default.html', dest: join(target, '_layouts/default.html'),
+      desired: Buffer.from(desiredLayout), before: digest(Buffer.from(defaultLayout)),
+      after: digest(Buffer.from(desiredLayout)) });
+  }
   // Prepare all inputs before mutation, and guard symlinks in destinations.
   for (const rel of RUNTIME_FILES) {
     const source = join(TOOLING, rel);
